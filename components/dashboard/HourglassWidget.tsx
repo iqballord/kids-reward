@@ -3,111 +3,70 @@
 import { useEffect, useState } from 'react'
 import type { HourglassState } from '@/lib/hourglass'
 
-interface HourglassWidgetProps {
+interface TimerWidgetProps {
   state: HourglassState
 }
 
-export function HourglassWidget({ state: initialState }: HourglassWidgetProps) {
-  const [progressPct, setProgressPct] = useState(initialState.progressPct)
+function formatTime(seconds: number) {
+  const m = Math.floor(seconds / 60).toString().padStart(2, '0')
+  const s = (seconds % 60).toString().padStart(2, '0')
+  return `${m}:${s}`
+}
+
+export function HourglassWidget({ state: initialState }: TimerWidgetProps) {
+  const [remainingS, setRemainingS] = useState(initialState.remainingS)
   const [isPaused, setIsPaused] = useState(initialState.isPaused)
 
-  // Tick setiap detik untuk animasi smooth
   useEffect(() => {
-    setProgressPct(initialState.progressPct)
+    setRemainingS(initialState.remainingS)
     setIsPaused(initialState.isPaused)
     if (initialState.isPaused || initialState.isFinished) return
 
     const interval = setInterval(() => {
-      setProgressPct((prev) => Math.min(100, prev + (100 / initialState.durationS)))
+      setRemainingS((prev) => Math.max(0, prev - 1))
     }, 1000)
 
     return () => clearInterval(interval)
   }, [initialState])
 
-  // Warna pasir: hijau → amber → merah saat hampir habis
-  const sandColor = progressPct < 60
-    ? '#86efac' // green-300
-    : progressPct < 85
-    ? '#fcd34d' // amber-300
-    : '#f87171' // red-400
+  const progressPct = Math.min(100, ((initialState.durationS - remainingS) / initialState.durationS) * 100)
 
-  // Pasir atas: mengecil seiring waktu
-  const topSandHeight = Math.max(0, (1 - progressPct / 100) * 52)
-  // Pasir bawah: membesar seiring waktu
-  const bottomSandHeight = Math.max(0, (progressPct / 100) * 52)
+  // Warna berubah seiring waktu habis
+  const isAlmostDone = remainingS < initialState.durationS * 0.15
+  const isHalfway = remainingS < initialState.durationS * 0.4
+
+  const ringColor = isAlmostDone ? '#f87171' : isHalfway ? '#fcd34d' : '#86efac'
+  const circumference = 2 * Math.PI * 28 // r=28
+  const strokeDashoffset = circumference * (1 - progressPct / 100)
 
   return (
-    <div className={`flex flex-col items-center gap-2 ${isPaused ? 'opacity-50' : ''}`}>
-      <svg
-        width="80"
-        height="130"
-        viewBox="0 0 80 130"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-        className={isPaused ? '' : 'drop-shadow-lg'}
-      >
-        {/* Frame luar hourglass */}
-        <path
-          d="M10 8 L70 8 L70 12 L45 58 L45 72 L70 118 L70 122 L10 122 L10 118 L35 72 L35 58 L10 12 Z"
-          fill="rgba(255,255,255,0.08)"
-          stroke="rgba(255,255,255,0.3)"
-          strokeWidth="2"
-        />
-
-        {/* Pasir atas — mengecil dari bawah */}
-        {topSandHeight > 0 && (
-          <clipPath id="top-clip">
-            <rect x="10" y="8" width="60" height="54" />
-          </clipPath>
-        )}
-        {topSandHeight > 0 && (
-          <rect
-            x="10"
-            y={62 - topSandHeight}
-            width="60"
-            height={topSandHeight}
-            fill={sandColor}
-            opacity="0.85"
-            clipPath="url(#top-clip)"
-            style={{ transition: 'height 1s linear, y 1s linear' }}
+    <div className={`flex flex-col items-center gap-1 transition-opacity ${isPaused ? 'opacity-50' : 'opacity-100'}`}>
+      {/* Circular progress ring + timer di tengah */}
+      <div className="relative w-20 h-20 flex items-center justify-center">
+        <svg width="80" height="80" viewBox="0 0 80 80" className="-rotate-90">
+          {/* Track */}
+          <circle cx="40" cy="40" r="28" fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="6" />
+          {/* Progress */}
+          <circle
+            cx="40" cy="40" r="28"
+            fill="none"
+            stroke={ringColor}
+            strokeWidth="6"
+            strokeLinecap="round"
+            strokeDasharray={circumference}
+            strokeDashoffset={strokeDashoffset}
+            style={{ transition: 'stroke-dashoffset 1s linear, stroke 1s ease' }}
           />
-        )}
+        </svg>
+        {/* Waktu di tengah */}
+        <span className={`absolute text-lg font-black tabular-nums ${isAlmostDone ? 'text-red-400' : isHalfway ? 'text-amber-300' : 'text-green-300'}`}>
+          {formatTime(remainingS)}
+        </span>
+      </div>
 
-        {/* Titik pasir jatuh di tengah (leher) */}
-        {!isPaused && progressPct < 99 && (
-          <circle cx="40" cy="67" r="2" fill={sandColor} opacity="0.9">
-            <animate attributeName="cy" values="64;70;64" dur="0.8s" repeatCount="indefinite" />
-            <animate attributeName="opacity" values="0.9;0.3;0.9" dur="0.8s" repeatCount="indefinite" />
-          </circle>
-        )}
-
-        {/* Pasir bawah — membesar dari atas */}
-        {bottomSandHeight > 0 && (
-          <clipPath id="bottom-clip">
-            <rect x="10" y="68" width="60" height="54" />
-          </clipPath>
-        )}
-        {bottomSandHeight > 0 && (
-          <rect
-            x="10"
-            y={122 - bottomSandHeight}
-            width="60"
-            height={bottomSandHeight}
-            fill={sandColor}
-            opacity="0.7"
-            clipPath="url(#bottom-clip)"
-            style={{ transition: 'height 1s linear, y 1s linear' }}
-          />
-        )}
-
-        {/* Garis leher tengah */}
-        <line x1="35" y1="58" x2="45" y2="58" stroke="rgba(255,255,255,0.2)" strokeWidth="1" />
-        <line x1="35" y1="72" x2="45" y2="72" stroke="rgba(255,255,255,0.2)" strokeWidth="1" />
-      </svg>
-
-      {isPaused && (
-        <span className="text-white/40 text-xs font-medium tracking-wider uppercase">Jeda</span>
-      )}
+      <span className="text-white/40 text-xs font-medium tracking-wider uppercase">
+        {isPaused ? '⏸ Jeda' : '🍽️ Makan'}
+      </span>
     </div>
   )
 }
