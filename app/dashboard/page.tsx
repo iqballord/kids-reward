@@ -34,6 +34,10 @@ export default function DashboardPage() {
       fetchData()
     })
 
+    es.addEventListener('reward_redeemed', () => {
+      fetchData()
+    })
+
     es.onerror = () => {
       // Fallback polling jika SSE disconnect
       fallbackInterval = setInterval(fetchData, 5000)
