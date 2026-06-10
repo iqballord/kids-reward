@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { HabitCard } from './HabitCard'
+import { HourglassButton } from './HourglassButton'
 import type { TodayData } from '@/lib/types'
 
 const SCHEDULE_LABELS: Record<string, string> = {
@@ -66,6 +67,8 @@ export function ChildSection({ data, onHabitComplete }: ChildSectionProps) {
           🎉 Semua habit selesai hari ini!
         </div>
       )}
+
+      <HourglassButton childId={child.id} childName={child.name} />
     </div>
   )
 }

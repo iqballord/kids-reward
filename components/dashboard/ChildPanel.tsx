@@ -1,5 +1,7 @@
 import { HabitRow } from './HabitRow'
+import { HourglassWidget } from './HourglassWidget'
 import type { TodayData } from '@/lib/types'
+import type { HourglassState } from '@/lib/hourglass'
 
 const SCHEDULE_LABELS: Record<string, string> = {
   morning: '☀️ Pagi',
@@ -7,7 +9,12 @@ const SCHEDULE_LABELS: Record<string, string> = {
   evening: '🌙 Malam',
 }
 
-export function ChildPanel({ data }: { data: TodayData }) {
+interface ChildPanelProps {
+  data: TodayData
+  hourglass: HourglassState | null
+}
+
+export function ChildPanel({ data, hourglass }: ChildPanelProps) {
   const { child, habits, totalTickets } = data
   const allHabits = [...habits.morning, ...habits.afternoon, ...habits.evening]
   const doneCount = allHabits.filter((h) => h.completedAt).length
@@ -23,9 +30,15 @@ export function ChildPanel({ data }: { data: TodayData }) {
           <h2 className="text-4xl font-bold text-white">{child.name}</h2>
           <p className="text-white/50 text-lg mt-0.5">{child.age} tahun</p>
         </div>
-        <div className="text-right">
-          <p className="text-5xl font-black text-amber-400">{totalTickets}</p>
-          <p className="text-white/40 text-sm">tiket 🎫</p>
+        <div className="flex items-center gap-4">
+          {/* Hourglass ambient — tampil di pojok kanan atas panel jika aktif */}
+          {hourglass && !hourglass.isFinished && (
+            <HourglassWidget state={hourglass} />
+          )}
+          <div className="text-right">
+            <p className="text-5xl font-black text-amber-400">{totalTickets}</p>
+            <p className="text-white/40 text-sm">tiket 🎫</p>
+          </div>
         </div>
       </div>
 
@@ -63,7 +76,6 @@ export function ChildPanel({ data }: { data: TodayData }) {
         })}
       </div>
 
-      {/* All done banner */}
       {allDone && (
         <div className="mt-4 text-center py-3 rounded-2xl bg-green-500/20 text-green-300 font-bold text-xl">
           🎉 Semua selesai!
