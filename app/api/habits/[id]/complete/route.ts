@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { habits, habitLogs, ticketTransactions } from '@/lib/db/schema'
 import { eq, and, sum } from 'drizzle-orm'
+import { emitEvent } from '@/lib/sse'
 import type { CompleteHabitResponse } from '@/lib/types'
 
 function todayDate() {
@@ -76,6 +77,13 @@ export async function POST(
   const allHabitsDone = activeHabits.every((h) =>
     todayLogs.some((l) => l.habitId === h.id)
   )
+
+  emitEvent('habit_completed', {
+    childId: child_id,
+    habitId: id,
+    totalTickets,
+    allHabitsDone,
+  })
 
   const response: CompleteHabitResponse = {
     habitLogId: log.id,
