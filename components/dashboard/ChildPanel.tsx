@@ -58,16 +58,19 @@ export function ChildPanel({ data, hourglass }: ChildPanelProps) {
 
       {/* Habit list per schedule */}
       <div className="flex-1 flex flex-col gap-4 overflow-y-auto">
+        {doneCount === 0 && (
+          <p className="text-white/20 text-base text-center py-6">Belum ada yang selesai...</p>
+        )}
         {(['morning', 'afternoon', 'evening'] as const).map((schedule) => {
-          const items = habits[schedule]
-          if (items.length === 0) return null
+          const done = habits[schedule].filter((h) => h.completedAt)
+          if (done.length === 0) return null
           return (
             <div key={schedule}>
               <p className="text-white/30 text-sm font-semibold uppercase tracking-widest mb-2 px-1">
                 {SCHEDULE_LABELS[schedule]}
               </p>
               <div className="flex flex-col gap-1.5">
-                {items.map((habit) => (
+                {done.map((habit) => (
                   <HabitRow key={habit.id} habit={habit} />
                 ))}
               </div>
