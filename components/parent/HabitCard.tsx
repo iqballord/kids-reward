@@ -8,7 +8,7 @@ const UNDO_SECONDS = 5
 interface HabitCardProps {
   habit: HabitWithStatus
   childId: string
-  onComplete: (habitId: string, showJournal: boolean) => void
+  onComplete: (habitId: string, showJournal: boolean, habitLogId: string) => void
 }
 
 export function HabitCard({ habit, childId, onComplete }: HabitCardProps) {
@@ -61,7 +61,7 @@ export function HabitCard({ habit, childId, onComplete }: HabitCardProps) {
       if (!res.ok) { setStatus('idle'); return }
       const data = await res.json()
       setStatus('done')
-      onComplete(habit.id, data.showJournal)
+      onComplete(habit.id, data.showJournal, data.habitLogId)
     } catch {
       setStatus('idle')
     }
