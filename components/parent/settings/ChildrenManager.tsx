@@ -219,6 +219,37 @@ export function ChildrenManager({ children, habitsByChild, onChanged }: Children
   const [editingChildId, setEditingChildId] = useState<string | null>(null)
   const [addingHabitForChild, setAddingHabitForChild] = useState<string | null>(null)
   const [expandedChild, setExpandedChild] = useState<string | null>(children[0]?.id ?? null)
+  const [editingHabitId, setEditingHabitId] = useState<string | null>(null)
+  const [editHabitName, setEditHabitName] = useState('')
+  const [editHabitIcon, setEditHabitIcon] = useState('')
+  const [editHabitSchedule, setEditHabitSchedule] = useState('')
+  const [editHabitTickets, setEditHabitTickets] = useState('')
+  const [editHabitIsMeal, setEditHabitIsMeal] = useState(false)
+
+  function startEditHabit(habit: Habit) {
+    setEditingHabitId(habit.id)
+    setEditHabitName(habit.name)
+    setEditHabitIcon(habit.icon)
+    setEditHabitSchedule(habit.schedule)
+    setEditHabitTickets(String(habit.ticketsValue))
+    setEditHabitIsMeal(habit.isMeal)
+  }
+
+  async function handleSaveHabit(habitId: string) {
+    await fetch(`/api/habits/${habitId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: editHabitName.trim(),
+        icon: editHabitIcon,
+        schedule: editHabitSchedule,
+        tickets_value: Number(editHabitTickets),
+        is_meal: editHabitIsMeal,
+      }),
+    })
+    setEditingHabitId(null)
+    onChanged()
+  }
 
   async function handleSaveChild(id: string, name: string, age: number, avatar: string) {
     await fetch(`/api/children/${id}`, {
@@ -303,27 +334,107 @@ export function ChildrenManager({ children, habitsByChild, onChanged }: Children
                       </p>
                       <div className="flex flex-col gap-1.5">
                         {items.map((habit) => (
-                          <div key={habit.id} className="flex items-center gap-3 px-3 py-2.5 bg-gray-50 rounded-xl">
-                            <span className="text-xl">{habit.icon}</span>
-                            <span className="flex-1 text-sm font-medium text-gray-700">{habit.name}</span>
-                            <span className="text-xs text-amber-500 font-semibold">🎫{habit.ticketsValue}</span>
-                            <button
-                              onClick={() => handleToggleDashboard(habit.id, habit.showOnDashboard)}
-                              title={habit.showOnDashboard ? 'Sembunyikan dari TV' : 'Tampilkan di TV'}
-                              className={`text-xs px-2.5 py-1 rounded-lg font-semibold transition-all ${
-                                habit.showOnDashboard
-                                  ? 'bg-blue-100 text-blue-600'
-                                  : 'bg-gray-100 text-gray-400'
-                              }`}
-                            >
-                              📺
-                            </button>
-                            <button
-                              onClick={() => handleToggleHabit(habit.id, habit.isActive)}
-                              className="text-xs px-2.5 py-1 rounded-lg bg-red-50 text-red-400 font-semibold"
-                            >
-                              Nonaktifkan
-                            </button>
+                          <div key={habit.id} className="rounded-xl overflow-hidden">
+                            {/* Habit row */}
+                            <div className="flex items-center gap-3 px-3 py-2.5 bg-gray-50">
+                              <span className="text-xl">{habit.icon}</span>
+                              <span className="flex-1 text-sm font-medium text-gray-700">{habit.name}</span>
+                              <span className="text-xs text-amber-500 font-semibold">🎫{habit.ticketsValue}</span>
+                              <button
+                                onClick={() => handleToggleDashboard(habit.id, habit.showOnDashboard)}
+                                title={habit.showOnDashboard ? 'Sembunyikan dari TV' : 'Tampilkan di TV'}
+                                className={`text-xs px-2 py-1 rounded-lg font-semibold transition-all ${
+                                  habit.showOnDashboard ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-400'
+                                }`}
+                              >
+                                📺
+                              </button>
+                              <button
+                                onClick={() => editingHabitId === habit.id ? setEditingHabitId(null) : startEditHabit(habit)}
+                                className="text-xs px-2 py-1 rounded-lg bg-blue-50 text-blue-500 font-semibold"
+                              >
+                                ✏️
+                              </button>
+                              <button
+                                onClick={() => handleToggleHabit(habit.id, habit.isActive)}
+                                className="text-xs px-2 py-1 rounded-lg bg-red-50 text-red-400 font-semibold"
+                              >
+                                Off
+                              </button>
+                            </div>
+
+                            {/* Edit form inline */}
+                            {editingHabitId === habit.id && (
+                              <div className="bg-blue-50 border-t border-blue-100 px-3 py-3">
+                                {/* Icon picker */}
+                                <div className="flex flex-wrap gap-1.5 mb-2">
+                                  {COMMON_ICONS.map((e) => (
+                                    <button
+                                      key={e}
+                                      onClick={() => setEditHabitIcon(e)}
+                                      className={`text-xl p-1 rounded-lg border-2 transition-all ${editHabitIcon === e ? 'border-blue-400 bg-blue-100' : 'border-transparent'}`}
+                                    >
+                                      {e}
+                                    </button>
+                                  ))}
+                                </div>
+                                <input
+                                  type="text"
+                                  value={editHabitIcon}
+                                  onChange={(e) => setEditHabitIcon(e.target.value)}
+                                  placeholder="Atau ketik emoji..."
+                                  className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm mb-2 focus:outline-none focus:border-blue-400"
+                                  maxLength={4}
+                                />
+                                <input
+                                  type="text"
+                                  value={editHabitName}
+                                  onChange={(e) => setEditHabitName(e.target.value)}
+                                  placeholder="Nama habit"
+                                  className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm mb-2 focus:outline-none focus:border-blue-400"
+                                />
+                                <div className="flex gap-2 mb-2">
+                                  <select
+                                    value={editHabitSchedule}
+                                    onChange={(e) => setEditHabitSchedule(e.target.value)}
+                                    className="flex-1 px-3 py-2 rounded-xl border border-gray-200 text-sm bg-white focus:outline-none"
+                                  >
+                                    {SCHEDULE_OPTIONS.map((s) => (
+                                      <option key={s.value} value={s.value}>{s.label}</option>
+                                    ))}
+                                  </select>
+                                  <div className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-gray-200 bg-white">
+                                    <span className="text-amber-500 text-sm">🎫</span>
+                                    <input
+                                      type="number"
+                                      value={editHabitTickets}
+                                      onChange={(e) => setEditHabitTickets(e.target.value)}
+                                      min={1} max={10}
+                                      className="w-10 text-sm text-center focus:outline-none"
+                                    />
+                                  </div>
+                                </div>
+                                <label className="flex items-center gap-2 mb-3 cursor-pointer">
+                                  <input
+                                    type="checkbox"
+                                    checked={editHabitIsMeal}
+                                    onChange={(e) => setEditHabitIsMeal(e.target.checked)}
+                                    className="w-4 h-4 accent-blue-500"
+                                  />
+                                  <span className="text-xs text-gray-600">Habit makan (tampilkan jurnal)</span>
+                                </label>
+                                <div className="flex gap-2">
+                                  <button onClick={() => setEditingHabitId(null)} className="flex-1 py-2 rounded-xl bg-gray-200 text-gray-600 text-xs font-semibold">Batal</button>
+                                  <button
+                                    onClick={() => handleSaveHabit(habit.id)}
+                                    disabled={!editHabitName.trim()}
+                                    className="flex-1 py-2 rounded-xl bg-blue-500 text-white text-xs font-semibold disabled:opacity-40"
+                                  >
+                                    Simpan
+                                  </button>
+                                </div>
+                              </div>
+                            )}
                           </div>
                         ))}
                       </div>
