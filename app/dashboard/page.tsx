@@ -60,7 +60,7 @@ export default function DashboardPage() {
     fetchData()
     const interval = setInterval(() => {
       const hour = new Date().getHours()
-      if (hour < 21) fetchData()
+      if (hour >= 6 && hour < 21) fetchData()
     }, 20000)
     return () => clearInterval(interval)
   }, [fetchData])
