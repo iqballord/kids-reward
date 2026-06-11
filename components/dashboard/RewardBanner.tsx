@@ -43,16 +43,16 @@ export function RewardBanner({ rewards, childId, totalTickets }: RewardBannerPro
                 : 'border-white/10 bg-white/5'
             }`}
           >
-            <span className="text-5xl leading-none">{reward.icon}</span>
-            <p className={`text-base font-bold text-center ${canRedeem ? 'text-amber-300' : 'text-white/70'}`}>
+            <span className="text-6xl leading-none">{reward.icon}</span>
+            <p className={`text-xl font-bold text-center ${canRedeem ? 'text-amber-300' : 'text-white/70'}`}>
               {reward.name}
             </p>
             {canRedeem ? (
-              <span className="text-sm font-black text-amber-400 bg-amber-400/20 px-3 py-1 rounded-full">
+              <span className="text-lg font-black text-amber-400 bg-amber-400/20 px-4 py-1.5 rounded-full">
                 ✓ Bisa ditukar!
               </span>
             ) : (
-              <span className="text-sm text-white/40">
+              <span className="text-xl font-bold text-white/60">
                 🎫 {needed} tiket lagi
               </span>
             )}
