@@ -37,6 +37,16 @@ export function RewardManager({ rewards, children, ticketBalances, onRedeemed, o
   const [redeemingId, setRedeemingId] = useState<string | null>(null)
   const [redeemChildId, setRedeemChildId] = useState<string>('')
   const [error, setError] = useState<string | null>(null)
+  const [confirmReset, setConfirmReset] = useState(false)
+  const [resetting, setResetting] = useState(false)
+
+  async function handleReset() {
+    setResetting(true)
+    await fetch('/api/tickets/reset', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({}) })
+    setResetting(false)
+    setConfirmReset(false)
+    onChanged()
+  }
 
   function getBalance(childId: string) {
     return ticketBalances.find((b) => b.childId === childId)?.balance ?? 0
@@ -89,7 +99,7 @@ export function RewardManager({ rewards, children, ticketBalances, onRedeemed, o
   return (
     <div>
       {/* Saldo tiket per anak */}
-      <div className="flex gap-3 mb-6">
+      <div className="flex gap-3 mb-3">
         {children.map((child) => (
           <div key={child.id} className="flex-1 bg-amber-50 border border-amber-200 rounded-2xl p-4 text-center">
             <p className="text-sm text-gray-500 mb-1">{child.name}</p>
@@ -98,6 +108,27 @@ export function RewardManager({ rewards, children, ticketBalances, onRedeemed, o
           </div>
         ))}
       </div>
+
+      {/* Reset tiket */}
+      {!confirmReset ? (
+        <button
+          onClick={() => setConfirmReset(true)}
+          className="w-full mb-6 py-2.5 rounded-2xl border border-red-100 text-red-400 text-sm font-medium"
+        >
+          🔄 Reset semua tiket ke 0
+        </button>
+      ) : (
+        <div className="mb-6 bg-red-50 border border-red-200 rounded-2xl p-4">
+          <p className="text-sm font-semibold text-red-700 mb-1">Yakin reset semua tiket?</p>
+          <p className="text-xs text-red-400 mb-3">Saldo semua anak akan menjadi 0. Tidak bisa dibatalkan.</p>
+          <div className="flex gap-2">
+            <button onClick={() => setConfirmReset(false)} className="flex-1 py-2.5 rounded-xl bg-gray-100 text-gray-500 text-sm font-semibold">Batal</button>
+            <button onClick={handleReset} disabled={resetting} className="flex-1 py-2.5 rounded-xl bg-red-500 text-white text-sm font-semibold disabled:opacity-50">
+              {resetting ? 'Mereset...' : 'Ya, reset'}
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Reward list */}
       <div className="flex flex-col gap-3 mb-4">
