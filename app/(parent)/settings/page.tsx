@@ -2,8 +2,31 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import { RewardManager } from '@/components/parent/settings/RewardManager'
+import { ChildrenManager } from '@/components/parent/settings/ChildrenManager'
 
-interface RewardsData {
+type Tab = 'children' | 'rewards'
+
+interface Habit {
+  id: string
+  name: string
+  icon: string
+  schedule: string
+  ticketsValue: number
+  isActive: boolean
+  isMeal: boolean
+  sortOrder: number
+  childId: string
+}
+
+interface Child {
+  id: string
+  name: string
+  age: number
+}
+
+interface SettingsData {
+  children: Child[]
+  habits: Habit[]
   rewards: {
     id: string
     name: string
@@ -11,17 +34,28 @@ interface RewardsData {
     childId: string | null
     isActive: boolean
   }[]
-  children: { id: string; name: string; age: number }[]
   ticketBalances: { childId: string; balance: number }[]
 }
 
 export default function SettingsPage() {
-  const [data, setData] = useState<RewardsData | null>(null)
+  const [tab, setTab] = useState<Tab>('children')
+  const [data, setData] = useState<SettingsData | null>(null)
   const [loading, setLoading] = useState(true)
 
   const fetchData = useCallback(async () => {
-    const res = await fetch('/api/rewards')
-    if (res.ok) setData(await res.json())
+    const [rewardsRes, habitsRes] = await Promise.all([
+      fetch('/api/rewards'),
+      fetch('/api/habits/all'),
+    ])
+    const rewardsData = await rewardsRes.json()
+    const habitsData = await habitsRes.json()
+
+    setData({
+      children: rewardsData.children,
+      habits: habitsData,
+      rewards: rewardsData.rewards,
+      ticketBalances: rewardsData.ticketBalances,
+    })
     setLoading(false)
   }, [])
 
@@ -37,14 +71,43 @@ export default function SettingsPage() {
     )
   }
 
+  const habitsByChild = data?.habits.reduce<Record<string, typeof data.habits>>((acc, h) => {
+    if (!acc[h.childId]) acc[h.childId] = []
+    acc[h.childId].push(h)
+    return acc
+  }, {}) ?? {}
+
   return (
     <div>
-      <div className="mb-6">
-        <h2 className="text-xl font-bold text-gray-900">🎁 Reward & Tiket</h2>
-        <p className="text-sm text-gray-400 mt-1">Kelola reward yang bisa ditukar dengan tiket</p>
+      <h2 className="text-xl font-bold text-gray-900 mb-4">⚙️ Pengaturan</h2>
+
+      {/* Tab switcher */}
+      <div className="flex gap-2 mb-6 bg-gray-100 p-1 rounded-2xl">
+        {([
+          { key: 'children', label: '👶 Anak & Habit' },
+          { key: 'rewards',  label: '🎁 Reward' },
+        ] as { key: Tab; label: string }[]).map(({ key, label }) => (
+          <button
+            key={key}
+            onClick={() => setTab(key)}
+            className={`flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all ${
+              tab === key ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-400'
+            }`}
+          >
+            {label}
+          </button>
+        ))}
       </div>
 
-      {data && (
+      {tab === 'children' && data && (
+        <ChildrenManager
+          children={data.children}
+          habitsByChild={habitsByChild}
+          onChanged={fetchData}
+        />
+      )}
+
+      {tab === 'rewards' && data && (
         <RewardManager
           rewards={data.rewards}
           children={data.children}

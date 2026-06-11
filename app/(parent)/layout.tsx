@@ -4,8 +4,8 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
 const NAV = [
-  { href: '/',          label: 'Hari Ini', icon: '📋' },
-  { href: '/settings',  label: 'Reward',   icon: '🎁' },
+  { href: '/',          label: 'Hari Ini',  icon: '📋' },
+  { href: '/settings',  label: 'Pengaturan', icon: '⚙️' },
 ]
 
 export default function ParentLayout({ children }: { children: React.ReactNode }) {
