@@ -58,59 +58,10 @@ export default function DashboardPage() {
 
   useEffect(() => {
     fetchData()
-  }, [fetchData])
-
-  useEffect(() => {
-    let fallbackInterval: ReturnType<typeof setInterval>
-    const es = new EventSource('/api/events')
-
-    es.addEventListener('habit_completed', () => fetchData())
-    es.addEventListener('reward_redeemed', () => fetchData())
-
-    es.addEventListener('hourglass_started', (e) => {
-      const { childId } = JSON.parse(e.data)
-      fetch(`/api/hourglass?child_id=${childId}`)
-        .then((r) => r.json())
-        .then(({ session }) => {
-          if (session) setHourglasses((prev) => ({ ...prev, [childId]: session }))
-        })
-    })
-
-    es.addEventListener('hourglass_paused', (e) => {
-      const { childId } = JSON.parse(e.data)
-      fetch(`/api/hourglass?child_id=${childId}`)
-        .then((r) => r.json())
-        .then(({ session }) => {
-          if (session) setHourglasses((prev) => ({ ...prev, [childId]: session }))
-        })
-    })
-
-    es.addEventListener('hourglass_resumed', (e) => {
-      const { childId } = JSON.parse(e.data)
-      fetch(`/api/hourglass?child_id=${childId}`)
-        .then((r) => r.json())
-        .then(({ session }) => {
-          if (session) setHourglasses((prev) => ({ ...prev, [childId]: session }))
-        })
-    })
-
-    es.addEventListener('hourglass_stopped', (e) => {
-      const { childId } = JSON.parse(e.data)
-      setHourglasses((prev) => {
-        const next = { ...prev }
-        delete next[childId]
-        return next
-      })
-    })
-
-    es.onerror = () => {
-      fallbackInterval = setInterval(fetchData, 5000)
-    }
-
-    return () => {
-      es.close()
-      clearInterval(fallbackInterval)
-    }
+    // Polling setiap 3 detik — SSE tidak reliable di Vercel serverless
+    // karena setiap request berjalan di instance berbeda
+    const interval = setInterval(fetchData, 3000)
+    return () => clearInterval(interval)
   }, [fetchData])
 
   const today = new Date().toLocaleDateString('id-ID', {
