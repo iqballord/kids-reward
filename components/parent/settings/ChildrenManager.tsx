@@ -10,6 +10,7 @@ interface Habit {
   ticketsValue: number
   isActive: boolean
   isMeal: boolean
+  showOnDashboard: boolean
   sortOrder: number
 }
 
@@ -238,6 +239,15 @@ export function ChildrenManager({ children, habitsByChild, onChanged }: Children
     onChanged()
   }
 
+  async function handleToggleDashboard(habitId: string, current: boolean) {
+    await fetch(`/api/habits/${habitId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ show_on_dashboard: !current }),
+    })
+    onChanged()
+  }
+
   return (
     <div className="flex flex-col gap-4">
       {children.map((child) => {
@@ -297,6 +307,17 @@ export function ChildrenManager({ children, habitsByChild, onChanged }: Children
                             <span className="text-xl">{habit.icon}</span>
                             <span className="flex-1 text-sm font-medium text-gray-700">{habit.name}</span>
                             <span className="text-xs text-amber-500 font-semibold">🎫{habit.ticketsValue}</span>
+                            <button
+                              onClick={() => handleToggleDashboard(habit.id, habit.showOnDashboard)}
+                              title={habit.showOnDashboard ? 'Sembunyikan dari TV' : 'Tampilkan di TV'}
+                              className={`text-xs px-2.5 py-1 rounded-lg font-semibold transition-all ${
+                                habit.showOnDashboard
+                                  ? 'bg-blue-100 text-blue-600'
+                                  : 'bg-gray-100 text-gray-400'
+                              }`}
+                            >
+                              📺
+                            </button>
                             <button
                               onClick={() => handleToggleHabit(habit.id, habit.isActive)}
                               className="text-xs px-2.5 py-1 rounded-lg bg-red-50 text-red-400 font-semibold"

@@ -18,6 +18,7 @@ export const habits = pgTable('habits', {
   ticketsValue: integer('tickets_value').notNull().default(1),
   isActive: boolean('is_active').notNull().default(true),
   isMeal: boolean('is_meal').notNull().default(false),
+  showOnDashboard: boolean('show_on_dashboard').notNull().default(false),
   sortOrder: integer('sort_order').notNull().default(0),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
 })

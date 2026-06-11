@@ -17,6 +17,7 @@ export interface Habit {
   ticketsValue: number
   isActive: boolean
   isMeal: boolean
+  showOnDashboard: boolean
   sortOrder: number
 }
 

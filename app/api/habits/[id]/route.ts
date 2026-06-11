@@ -9,13 +9,14 @@ export async function PATCH(
 ) {
   const { id } = await params
   const body = await request.json()
-  const { name, icon, schedule, tickets_value, is_active, is_meal } = body as {
+  const { name, icon, schedule, tickets_value, is_active, is_meal, show_on_dashboard } = body as {
     name?: string
     icon?: string
     schedule?: string
     tickets_value?: number
     is_active?: boolean
     is_meal?: boolean
+    show_on_dashboard?: boolean
   }
 
   const updates: Record<string, unknown> = {}
@@ -25,6 +26,7 @@ export async function PATCH(
   if (tickets_value !== undefined) updates.ticketsValue = tickets_value
   if (is_active !== undefined) updates.isActive = is_active
   if (is_meal !== undefined) updates.isMeal = is_meal
+  if (show_on_dashboard !== undefined) updates.showOnDashboard = show_on_dashboard
 
   const [updated] = await db
     .update(habits)
