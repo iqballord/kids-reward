@@ -35,6 +35,7 @@ export function RewardManager({ rewards, children, ticketBalances, onRedeemed, o
   const [showAdd, setShowAdd] = useState(false)
   const [newName, setNewName] = useState('')
   const [newIcon, setNewIcon] = useState('🎁')
+  const [newIconCustom, setNewIconCustom] = useState('')
   const [newCost, setNewCost] = useState('')
   const [newChildId, setNewChildId] = useState<string>('all')
   const [saving, setSaving] = useState(false)
@@ -64,13 +65,14 @@ export function RewardManager({ rewards, children, ticketBalances, onRedeemed, o
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         name: newName.trim(),
-        icon: newIcon,
+        icon: newIconCustom.trim() || newIcon,
         ticket_cost: Number(newCost),
         child_id: newChildId === 'all' ? null : newChildId,
       }),
     })
     setNewName('')
     setNewIcon('🎁')
+    setNewIconCustom('')
     setNewCost('')
     setNewChildId('all')
     setShowAdd(false)
@@ -227,17 +229,25 @@ export function RewardManager({ rewards, children, ticketBalances, onRedeemed, o
 
           {/* Icon picker */}
           <p className="text-xs text-gray-500 mb-1.5">Pilih ikon</p>
-          <div className="flex flex-wrap gap-2 mb-3">
+          <div className="flex flex-wrap gap-2 mb-2">
             {REWARD_ICONS.map((e) => (
               <button
                 key={e}
-                onClick={() => setNewIcon(e)}
-                className={`text-2xl p-1.5 rounded-xl border-2 transition-all ${newIcon === e ? 'border-blue-400 bg-blue-50' : 'border-transparent'}`}
+                onClick={() => { setNewIcon(e); setNewIconCustom('') }}
+                className={`text-2xl p-1.5 rounded-xl border-2 transition-all ${newIcon === e && !newIconCustom ? 'border-blue-400 bg-blue-50' : 'border-transparent'}`}
               >
                 {e}
               </button>
             ))}
           </div>
+          <input
+            type="text"
+            value={newIconCustom}
+            onChange={(e) => setNewIconCustom(e.target.value)}
+            placeholder="Atau ketik emoji lain..."
+            className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm mb-3 focus:outline-none focus:border-blue-400"
+            maxLength={4}
+          />
 
           <input
             type="text"
