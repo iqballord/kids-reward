@@ -4,10 +4,7 @@ import { habits, habitLogs, ticketTransactions } from '@/lib/db/schema'
 import { eq, and, sum } from 'drizzle-orm'
 import { emitEvent } from '@/lib/sse'
 import type { CompleteHabitResponse } from '@/lib/types'
-
-function todayDate() {
-  return new Date().toISOString().split('T')[0]
-}
+import { todayWIB } from '@/lib/date'
 
 export async function POST(
   request: NextRequest,
@@ -21,7 +18,7 @@ export async function POST(
     return NextResponse.json({ error: 'child_id is required' }, { status: 400 })
   }
 
-  const today = todayDate()
+  const today = todayWIB()
 
   const [habit] = await db.select().from(habits).where(eq(habits.id, id))
   if (!habit) {

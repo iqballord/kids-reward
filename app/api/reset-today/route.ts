@@ -3,22 +3,18 @@ import { db } from '@/lib/db'
 import { habitLogs, ticketTransactions } from '@/lib/db/schema'
 import { eq, and, gte, lt } from 'drizzle-orm'
 import { emitEvent } from '@/lib/sse'
+import { todayWIB } from '@/lib/date'
 
-function todayRange() {
-  const start = new Date()
-  start.setHours(0, 0, 0, 0)
-  const end = new Date()
-  end.setHours(23, 59, 59, 999)
+function todayRangeWIB() {
+  const today = todayWIB()
+  const start = new Date(`${today}T00:00:00+07:00`)
+  const end = new Date(`${today}T23:59:59.999+07:00`)
   return { start, end }
 }
 
-function todayDate() {
-  return new Date().toISOString().split('T')[0]
-}
-
 export async function POST() {
-  const today = todayDate()
-  const { start, end } = todayRange()
+  const today = todayWIB()
+  const { start, end } = todayRangeWIB()
 
   // Hapus semua habit logs hari ini
   await db

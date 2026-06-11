@@ -130,11 +130,13 @@ meal_journals
   habit_log_id     uuid FK → habit_logs.id  -- null jika jurnal manual
   date             date NOT NULL
   meal_type        text NOT NULL         -- 'breakfast' | 'lunch' | 'dinner'
+  start_time       time                  -- waktu mulai makan (input orang tua)
+  duration_min     int                   -- durasi makan dalam menit (input orang tua)
   portion          text NOT NULL         -- 'little' | 'half' | 'all'
   mood             text NOT NULL         -- 'focused' | 'distracted' | 'fussy'
   food_description text
   notes            text
-  created_at       timestamptz DEFAULT now()
+  created_at       timestamptz DEFAULT now()  -- timestamp completion otomatis
 
 ticket_transactions
   id          uuid PK
@@ -390,7 +392,7 @@ State hourglass disimpan di DB (`hourglass_sessions`) agar jika browser TV refre
 Di-generate di API route dengan `papaparse`. Dua sheet dalam satu file tidak bisa di CSV murni, jadi export dalam dua file terpisah yang di-zip, atau satu CSV dengan semua kolom.
 
 **Kolom CSV (meal journal):**
-`date, child_name, meal_type, portion, mood, food_description, notes`
+`date, child_name, meal_type, start_time, duration_min, portion, mood, food_description, notes, completed_at`
 
 ### PDF
 Di-generate client-side dengan `@react-pdf/renderer`. Layout sederhana: header berisi nama anak + rentang tanggal, tabel jurnal makan, ringkasan habit completion rate per minggu.

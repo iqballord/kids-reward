@@ -57,8 +57,21 @@ export default function DashboardPage() {
   }, [])
 
   useEffect(() => {
+    const wibDate = () => new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Jakarta' })
+    let lastDate = wibDate()
+
     fetchData()
+
     const interval = setInterval(() => {
+      const currentDate = wibDate()
+
+      // Ganti hari → selalu fetch ulang tanpa peduli jam
+      if (currentDate !== lastDate) {
+        lastDate = currentDate
+        fetchData()
+        return
+      }
+
       const hour = Number(new Date().toLocaleString('en-US', { timeZone: 'Asia/Jakarta', hour: 'numeric', hour12: false }))
       if (hour >= 6 && hour < 21) fetchData()
     }, 20000)

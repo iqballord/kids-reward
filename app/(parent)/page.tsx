@@ -23,6 +23,13 @@ export default function HomePage() {
 
   useEffect(() => {
     fetchToday()
+
+    // Refetch saat tab kembali aktif — tangkap kasus browser tidur semalam
+    function handleVisibilityChange() {
+      if (document.visibilityState === 'visible') fetchToday()
+    }
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
   }, [fetchToday])
 
   function handleHabitComplete(

@@ -3,13 +3,10 @@ import { db } from '@/lib/db'
 import { children, habits, habitLogs, ticketTransactions } from '@/lib/db/schema'
 import { eq, and, sum } from 'drizzle-orm'
 import type { TodayData, HabitWithStatus } from '@/lib/types'
-
-function todayDate() {
-  return new Date().toISOString().split('T')[0]
-}
+import { todayWIB } from '@/lib/date'
 
 export async function GET() {
-  const today = todayDate()
+  const today = todayWIB()
 
   const allChildren = await db.select().from(children).orderBy(children.createdAt)
 

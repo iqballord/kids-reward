@@ -25,14 +25,14 @@ const MOOD_OPTIONS: { value: Mood; label: string; emoji: string }[] = [
 ]
 
 function guessMealType(): MealType {
-  const h = new Date().getHours()
+  const h = Number(new Date().toLocaleString('en-US', { timeZone: 'Asia/Jakarta', hour: 'numeric', hour12: false }))
   if (h < 11) return 'breakfast'
   if (h < 16) return 'lunch'
   return 'dinner'
 }
 
 function todayDate() {
-  return new Date().toISOString().split('T')[0]
+  return new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Jakarta' })
 }
 
 export function MealJournalModal({ childId, habitLogId, onDone }: MealJournalModalProps) {
@@ -40,6 +40,10 @@ export function MealJournalModal({ childId, habitLogId, onDone }: MealJournalMod
   const [mood, setMood] = useState<Mood | null>(null)
   const [food, setFood] = useState('')
   const [notes, setNotes] = useState('')
+  const [startTime, setStartTime] = useState(() => {
+    const now = new Date()
+    return `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`
+  })
   const [duration, setDuration] = useState('')
   const [saving, setSaving] = useState(false)
 
@@ -59,6 +63,7 @@ export function MealJournalModal({ childId, habitLogId, onDone }: MealJournalMod
           mood,
           food_description: food || null,
           notes: notes || null,
+          start_time: startTime || null,
           duration_minutes: duration ? Number(duration) : null,
         }),
       })
@@ -140,20 +145,31 @@ export function MealJournalModal({ childId, habitLogId, onDone }: MealJournalMod
           />
         </div>
 
-        {/* Durasi */}
-        <div className="mb-4">
-          <p className="text-sm font-semibold text-gray-600 mb-2">Berapa menit makan? <span className="text-gray-400 font-normal">(opsional)</span></p>
-          <div className="flex items-center gap-3">
+        {/* Waktu mulai + Durasi */}
+        <div className="mb-4 flex gap-3">
+          <div className="flex-1">
+            <p className="text-sm font-semibold text-gray-600 mb-2">Mulai jam <span className="text-gray-400 font-normal">(opsional)</span></p>
             <input
-              type="number"
-              value={duration}
-              onChange={(e) => setDuration(e.target.value)}
-              placeholder="cth: 20"
-              min={1}
-              max={120}
-              className="w-32 px-4 py-3 rounded-2xl border border-gray-200 text-gray-800 text-sm focus:outline-none focus:border-blue-400"
+              type="time"
+              value={startTime}
+              onChange={(e) => setStartTime(e.target.value)}
+              className="w-full px-4 py-3 rounded-2xl border border-gray-200 text-gray-800 text-sm focus:outline-none focus:border-blue-400"
             />
-            <span className="text-sm text-gray-400">menit</span>
+          </div>
+          <div className="flex-1">
+            <p className="text-sm font-semibold text-gray-600 mb-2">Durasi <span className="text-gray-400 font-normal">(opsional)</span></p>
+            <div className="flex items-center gap-2">
+              <input
+                type="number"
+                value={duration}
+                onChange={(e) => setDuration(e.target.value)}
+                placeholder="cth: 20"
+                min={1}
+                max={120}
+                className="w-full px-4 py-3 rounded-2xl border border-gray-200 text-gray-800 text-sm focus:outline-none focus:border-blue-400"
+              />
+              <span className="text-sm text-gray-400 whitespace-nowrap">menit</span>
+            </div>
           </div>
         </div>
 

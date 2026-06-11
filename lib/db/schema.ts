@@ -1,4 +1,4 @@
-import { pgTable, uuid, text, integer, boolean, timestamp, date } from 'drizzle-orm/pg-core'
+import { pgTable, uuid, text, integer, boolean, timestamp, date, time } from 'drizzle-orm/pg-core'
 import { relations } from 'drizzle-orm'
 
 export const children = pgTable('children', {
@@ -38,6 +38,7 @@ export const mealJournals = pgTable('meal_journals', {
   habitLogId: uuid('habit_log_id').references(() => habitLogs.id, { onDelete: 'set null' }),
   date: date('date').notNull(),
   mealType: text('meal_type').notNull(), // 'breakfast' | 'lunch' | 'dinner'
+  startTime: time('start_time'),         // waktu mulai makan (HH:MM)
   portion: text('portion').notNull(),    // 'little' | 'half' | 'all'
   mood: text('mood').notNull(),          // 'focused' | 'distracted' | 'fussy'
   foodDescription: text('food_description'),

@@ -147,8 +147,8 @@ agar saya punya data konkret untuk dibawa ke dokter.
 
 Acceptance Criteria:
 - [ ] Form jurnal muncul saat habit "makan" di-tap selesai
-- [ ] Field: porsi (sedikit/setengah/habis), mood (fokus/distraksi/rewel), makanan apa, catatan bebas
-- [ ] Catatan tersimpan dengan timestamp otomatis
+- [ ] Field: waktu mulai (time picker), durasi (menit), porsi (sedikit/setengah/habis), mood (fokus/distraksi/rewel), makanan apa, catatan bebas
+- [ ] Timestamp completion otomatis dicatat dari server saat tap "selesai" — tidak ada input manual dari orang tua
 - [ ] Bisa skip jurnal (optional, bukan mandatory)
 
 US-003: Export data untuk dokter
@@ -207,7 +207,8 @@ Acceptance Criteria:
 | FR-02 | Orang tua bisa centang habit selesai dari mobile browser | P0 |
 | FR-03 | TV Dashboard auto-refresh saat ada update | P0 |
 | FR-04 | Hourglass timer bisa dimulai manual oleh orang tua untuk sesi makan | P0 |
-| FR-05 | Jurnal makan tersimpan dengan metadata lengkap per sesi | P0 |
+| FR-05 | Jurnal makan tersimpan dengan metadata lengkap per sesi: waktu mulai, durasi (menit), porsi, mood, makanan, catatan bebas | P0 |
+| FR-05a | Setiap tap "selesai" habit otomatis mencatat timestamp completion (tanpa input tambahan dari orang tua) | P0 |
 | FR-06 | Tiket terakumulasi per hari dan total, tidak bisa negatif | P0 |
 | FR-07 | Orang tua bisa redeem tiket untuk reward yang sudah didefinisikan | P0 |
 | FR-08 | History bisa difilter per anak dan rentang tanggal | P0 |
