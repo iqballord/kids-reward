@@ -44,12 +44,38 @@ export function RewardManager({ rewards, children, ticketBalances, onRedeemed, o
   const [error, setError] = useState<string | null>(null)
   const [confirmReset, setConfirmReset] = useState(false)
   const [resetting, setResetting] = useState(false)
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [editName, setEditName] = useState('')
+  const [editIcon, setEditIcon] = useState('')
+  const [editCost, setEditCost] = useState('')
 
   async function handleReset() {
     setResetting(true)
     await fetch('/api/tickets/reset', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({}) })
     setResetting(false)
     setConfirmReset(false)
+    onChanged()
+  }
+
+  function startEdit(reward: Reward) {
+    setEditingId(reward.id)
+    setEditName(reward.name)
+    setEditIcon(reward.icon ?? '🎁')
+    setEditCost(String(reward.ticketCost))
+    setRedeemingId(null)
+  }
+
+  async function handleSaveEdit(id: string) {
+    await fetch(`/api/rewards/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: editName.trim(),
+        icon: editIcon,
+        ticket_cost: Number(editCost),
+      }),
+    })
+    setEditingId(null)
     onChanged()
   }
 
@@ -162,10 +188,17 @@ export function RewardManager({ rewards, children, ticketBalances, onRedeemed, o
                     setRedeemingId(reward.id)
                     setRedeemChildId(children[0]?.id ?? '')
                     setError(null)
+                    setEditingId(null)
                   }}
                   className="px-3 py-1.5 rounded-xl bg-green-100 text-green-700 text-sm font-semibold"
                 >
                   Tukar
+                </button>
+                <button
+                  onClick={() => startEdit(reward)}
+                  className="px-3 py-1.5 rounded-xl bg-blue-50 text-blue-500 text-sm font-semibold"
+                >
+                  Edit
                 </button>
                 <button
                   onClick={() => handleDelete(reward.id)}
@@ -175,6 +208,55 @@ export function RewardManager({ rewards, children, ticketBalances, onRedeemed, o
                 </button>
               </div>
             </div>
+
+            {/* Edit panel */}
+            {editingId === reward.id && (
+              <div className="border-t border-gray-100 px-4 py-3 bg-blue-50">
+                <p className="text-sm font-medium text-blue-700 mb-2">Edit reward</p>
+                <div className="flex flex-wrap gap-1.5 mb-2">
+                  {REWARD_ICONS.map((e) => (
+                    <button
+                      key={e}
+                      onClick={() => setEditIcon(e)}
+                      className={`text-xl p-1 rounded-lg border-2 transition-all ${editIcon === e ? 'border-blue-400 bg-blue-100' : 'border-transparent'}`}
+                    >
+                      {e}
+                    </button>
+                  ))}
+                </div>
+                <input
+                  type="text"
+                  value={editIcon}
+                  onChange={(e) => setEditIcon(e.target.value)}
+                  placeholder="Atau ketik emoji..."
+                  className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm mb-2 focus:outline-none focus:border-blue-400"
+                  maxLength={4}
+                />
+                <input
+                  type="text"
+                  value={editName}
+                  onChange={(e) => setEditName(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm mb-2 focus:outline-none focus:border-blue-400"
+                />
+                <input
+                  type="number"
+                  value={editCost}
+                  onChange={(e) => setEditCost(e.target.value)}
+                  min={1}
+                  className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm mb-3 focus:outline-none focus:border-blue-400"
+                />
+                <div className="flex gap-2">
+                  <button onClick={() => setEditingId(null)} className="flex-1 py-2 rounded-xl bg-gray-200 text-gray-600 text-sm font-semibold">Batal</button>
+                  <button
+                    onClick={() => handleSaveEdit(reward.id)}
+                    disabled={!editName.trim() || !editCost}
+                    className="flex-1 py-2 rounded-xl bg-blue-500 text-white text-sm font-semibold disabled:opacity-40"
+                  >
+                    Simpan
+                  </button>
+                </div>
+              </div>
+            )}
 
             {/* Redeem panel */}
             {redeemingId === reward.id && (

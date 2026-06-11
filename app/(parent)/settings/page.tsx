@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { RewardManager } from '@/components/parent/settings/RewardManager'
 import { ChildrenManager } from '@/components/parent/settings/ChildrenManager'
+import { ResetTodayButton } from '@/components/parent/settings/ResetTodayButton'
 
 type Tab = 'children' | 'rewards'
 
@@ -82,6 +83,7 @@ export default function SettingsPage() {
   return (
     <div>
       <h2 className="text-xl font-bold text-gray-900 mb-4">⚙️ Pengaturan</h2>
+      <ResetTodayButton onReset={fetchData} />
 
       {/* Tab switcher */}
       <div className="flex gap-2 mb-6 bg-gray-100 p-1 rounded-2xl">
