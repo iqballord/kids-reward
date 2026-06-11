@@ -58,9 +58,10 @@ export default function DashboardPage() {
 
   useEffect(() => {
     fetchData()
-    // Polling setiap 3 detik — SSE tidak reliable di Vercel serverless
-    // karena setiap request berjalan di instance berbeda
-    const interval = setInterval(fetchData, 20000)
+    const interval = setInterval(() => {
+      const hour = new Date().getHours()
+      if (hour < 21) fetchData()
+    }, 20000)
     return () => clearInterval(interval)
   }, [fetchData])
 
