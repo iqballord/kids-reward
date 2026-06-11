@@ -34,8 +34,8 @@ export function ChildPanel({ data, hourglass }: ChildPanelProps) {
             <HourglassWidget state={hourglass} />
           )}
           <div className="text-right">
-            <p className="text-5xl font-black text-amber-400">{totalTickets}</p>
-            <p className="text-white/40 text-sm">tiket 🎫</p>
+            <p className="text-8xl font-black text-amber-400 leading-none">{totalTickets}</p>
+            <p className="text-white/40 text-lg mt-1">tiket 🎫</p>
           </div>
         </div>
       </div>
