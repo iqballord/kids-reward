@@ -59,7 +59,7 @@ export default function DashboardPage() {
   useEffect(() => {
     fetchData()
     const interval = setInterval(() => {
-      const hour = new Date().getHours()
+      const hour = Number(new Date().toLocaleString('en-US', { timeZone: 'Asia/Jakarta', hour: 'numeric', hour12: false }))
       if (hour >= 6 && hour < 21) fetchData()
     }, 20000)
     return () => clearInterval(interval)
