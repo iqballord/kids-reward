@@ -40,6 +40,7 @@ export function MealJournalModal({ childId, habitLogId, onDone }: MealJournalMod
   const [mood, setMood] = useState<Mood | null>(null)
   const [food, setFood] = useState('')
   const [notes, setNotes] = useState('')
+  const [duration, setDuration] = useState('')
   const [saving, setSaving] = useState(false)
 
   async function handleSave() {
@@ -58,6 +59,7 @@ export function MealJournalModal({ childId, habitLogId, onDone }: MealJournalMod
           mood,
           food_description: food || null,
           notes: notes || null,
+          duration_minutes: duration ? Number(duration) : null,
         }),
       })
     } finally {
@@ -136,6 +138,23 @@ export function MealJournalModal({ childId, habitLogId, onDone }: MealJournalMod
             placeholder="cth: nasi + ayam + sayur"
             className="w-full px-4 py-3 rounded-2xl border border-gray-200 text-gray-800 text-sm placeholder:text-gray-300 focus:outline-none focus:border-blue-400"
           />
+        </div>
+
+        {/* Durasi */}
+        <div className="mb-4">
+          <p className="text-sm font-semibold text-gray-600 mb-2">Berapa menit makan? <span className="text-gray-400 font-normal">(opsional)</span></p>
+          <div className="flex items-center gap-3">
+            <input
+              type="number"
+              value={duration}
+              onChange={(e) => setDuration(e.target.value)}
+              placeholder="cth: 20"
+              min={1}
+              max={120}
+              className="w-32 px-4 py-3 rounded-2xl border border-gray-200 text-gray-800 text-sm focus:outline-none focus:border-blue-400"
+            />
+            <span className="text-sm text-gray-400">menit</span>
+          </div>
         </div>
 
         {/* Catatan */}

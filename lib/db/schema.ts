@@ -42,6 +42,7 @@ export const mealJournals = pgTable('meal_journals', {
   mood: text('mood').notNull(),          // 'focused' | 'distracted' | 'fussy'
   foodDescription: text('food_description'),
   notes: text('notes'),
+  durationMinutes: integer('duration_minutes'),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
 })
 
