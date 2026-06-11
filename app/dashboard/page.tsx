@@ -91,19 +91,26 @@ export default function DashboardPage() {
         </p>
       </div>
 
+      {/* Habit panels */}
       <div className="flex-1 grid grid-cols-2 gap-6 min-h-0">
         {data.map((childData) => (
-          <div key={childData.child.id} className="flex flex-col gap-4 min-h-0">
-            <ChildPanel
-              data={childData}
-              hourglass={hourglasses[childData.child.id] ?? null}
-            />
-            <RewardBanner
-              rewards={rewards}
-              childId={childData.child.id}
-              totalTickets={childData.totalTickets}
-            />
-          </div>
+          <ChildPanel
+            key={childData.child.id}
+            data={childData}
+            hourglass={hourglasses[childData.child.id] ?? null}
+          />
+        ))}
+      </div>
+
+      {/* Reward banners — fixed di bawah, tidak terpengaruh tinggi panel */}
+      <div className="grid grid-cols-2 gap-6 shrink-0">
+        {data.map((childData) => (
+          <RewardBanner
+            key={childData.child.id}
+            rewards={rewards}
+            childId={childData.child.id}
+            totalTickets={childData.totalTickets}
+          />
         ))}
       </div>
     </div>
