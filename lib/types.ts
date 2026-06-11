@@ -5,6 +5,7 @@ export interface Child {
   name: string
   age: number
   avatarUrl: string | null
+  createdAt?: string | Date
 }
 
 export interface Habit {

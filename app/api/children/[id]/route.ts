@@ -9,11 +9,12 @@ export async function PATCH(
 ) {
   const { id } = await params
   const body = await request.json()
-  const { name, age } = body as { name?: string; age?: number }
+  const { name, age, avatar_url } = body as { name?: string; age?: number; avatar_url?: string }
 
-  const updates: Partial<{ name: string; age: number }> = {}
+  const updates: Partial<{ name: string; age: number; avatarUrl: string }> = {}
   if (name !== undefined) updates.name = name.trim()
   if (age !== undefined) updates.age = age
+  if (avatar_url !== undefined) updates.avatarUrl = avatar_url
 
   const [updated] = await db
     .update(children)

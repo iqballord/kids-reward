@@ -26,9 +26,12 @@ export function ChildPanel({ data, hourglass }: ChildPanelProps) {
     <div className={`flex flex-col h-full rounded-3xl p-6 border-2 transition-all duration-700 ${allDone ? 'border-green-500 bg-green-950/40' : 'border-white/10 bg-white/5'}`}>
       {/* Header anak */}
       <div className="flex items-center justify-between mb-5">
-        <div>
-          <h2 className="text-4xl font-bold text-white">{child.name}</h2>
-          <p className="text-white/50 text-lg mt-0.5">{child.age} tahun</p>
+        <div className="flex items-center gap-4">
+          <span className="text-6xl leading-none">{child.avatarUrl ?? '🐶'}</span>
+          <div>
+            <h2 className="text-4xl font-bold text-white">{child.name}</h2>
+            <p className="text-white/50 text-lg mt-0.5">{child.age} tahun</p>
+          </div>
         </div>
         <div className="flex items-center gap-4">
           {/* Hourglass ambient — tampil di pojok kanan atas panel jika aktif */}

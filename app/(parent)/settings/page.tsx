@@ -25,7 +25,7 @@ interface Child {
 }
 
 interface SettingsData {
-  children: Child[]
+  children: (Child & { avatarUrl: string | null })[]
   habits: Habit[]
   rewards: {
     id: string
