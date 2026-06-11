@@ -60,7 +60,7 @@ export default function DashboardPage() {
     fetchData()
     // Polling setiap 3 detik — SSE tidak reliable di Vercel serverless
     // karena setiap request berjalan di instance berbeda
-    const interval = setInterval(fetchData, 3000)
+    const interval = setInterval(fetchData, 20000)
     return () => clearInterval(interval)
   }, [fetchData])
 
