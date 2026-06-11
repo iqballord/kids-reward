@@ -26,9 +26,10 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   const body = await request.json()
-  const { child_id, name, ticket_cost } = body as {
+  const { child_id, name, icon, ticket_cost } = body as {
     child_id: string | null
     name: string
+    icon?: string
     ticket_cost: number
   }
 
@@ -38,7 +39,7 @@ export async function POST(request: NextRequest) {
 
   const [reward] = await db
     .insert(rewards)
-    .values({ childId: child_id ?? null, name, ticketCost: ticket_cost })
+    .values({ childId: child_id ?? null, name, icon: icon ?? '🎁', ticketCost: ticket_cost })
     .returning()
 
   return NextResponse.json(reward)

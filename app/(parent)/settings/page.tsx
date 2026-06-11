@@ -30,6 +30,7 @@ interface SettingsData {
   rewards: {
     id: string
     name: string
+    icon: string
     ticketCost: number
     childId: string | null
     isActive: boolean

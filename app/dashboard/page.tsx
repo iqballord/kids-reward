@@ -2,20 +2,33 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import { ChildPanel } from '@/components/dashboard/ChildPanel'
+import { RewardBanner } from '@/components/dashboard/RewardBanner'
 import type { TodayData } from '@/lib/types'
 import type { HourglassState } from '@/lib/hourglass'
 
+interface RewardItem {
+  id: string
+  name: string
+  icon: string
+  ticketCost: number
+  childId: string | null
+}
+
 export default function DashboardPage() {
   const [data, setData] = useState<TodayData[]>([])
+  const [rewards, setRewards] = useState<RewardItem[]>([])
   const [hourglasses, setHourglasses] = useState<Record<string, HourglassState>>({})
   const [loading, setLoading] = useState(true)
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date())
 
   const fetchData = useCallback(async () => {
     try {
-      const res = await fetch('/api/habits/today')
-      if (res.ok) {
-        const json: TodayData[] = await res.json()
+      const [habitsRes, rewardsRes] = await Promise.all([
+        fetch('/api/habits/today'),
+        fetch('/api/rewards'),
+      ])
+      if (habitsRes.ok) {
+        const json: TodayData[] = await habitsRes.json()
         setData(json)
         setLastUpdate(new Date())
 
@@ -33,6 +46,10 @@ export default function DashboardPage() {
           if (item) hgMap[item.childId] = item.state
         })
         setHourglasses(hgMap)
+      }
+      if (rewardsRes.ok) {
+        const rd = await rewardsRes.json()
+        setRewards(rd.rewards ?? [])
       }
     } finally {
       setLoading(false)
@@ -125,11 +142,17 @@ export default function DashboardPage() {
 
       <div className="flex-1 grid grid-cols-2 gap-6 min-h-0">
         {data.map((childData) => (
-          <ChildPanel
-            key={childData.child.id}
-            data={childData}
-            hourglass={hourglasses[childData.child.id] ?? null}
-          />
+          <div key={childData.child.id} className="flex flex-col gap-4 min-h-0">
+            <ChildPanel
+              data={childData}
+              hourglass={hourglasses[childData.child.id] ?? null}
+            />
+            <RewardBanner
+              rewards={rewards}
+              childId={childData.child.id}
+              totalTickets={childData.totalTickets}
+            />
+          </div>
         ))}
       </div>
     </div>

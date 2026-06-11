@@ -2,9 +2,12 @@
 
 import { useState } from 'react'
 
+const REWARD_ICONS = ['🎁','🍦','🍕','🍔','🎮','📺','🎢','🎠','🏖️','🎪','🧸','📚','🎨','🎭','🎬','🏆','⭐','🎉','🍭','🍫']
+
 interface Reward {
   id: string
   name: string
+  icon: string
   ticketCost: number
   childId: string | null
   isActive: boolean
@@ -31,6 +34,7 @@ interface RewardManagerProps {
 export function RewardManager({ rewards, children, ticketBalances, onRedeemed, onChanged }: RewardManagerProps) {
   const [showAdd, setShowAdd] = useState(false)
   const [newName, setNewName] = useState('')
+  const [newIcon, setNewIcon] = useState('🎁')
   const [newCost, setNewCost] = useState('')
   const [newChildId, setNewChildId] = useState<string>('all')
   const [saving, setSaving] = useState(false)
@@ -60,11 +64,13 @@ export function RewardManager({ rewards, children, ticketBalances, onRedeemed, o
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         name: newName.trim(),
+        icon: newIcon,
         ticket_cost: Number(newCost),
         child_id: newChildId === 'all' ? null : newChildId,
       }),
     })
     setNewName('')
+    setNewIcon('🎁')
     setNewCost('')
     setNewChildId('all')
     setShowAdd(false)
@@ -138,6 +144,7 @@ export function RewardManager({ rewards, children, ticketBalances, onRedeemed, o
         {rewards.map((reward) => (
           <div key={reward.id} className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
             <div className="flex items-center gap-3 px-4 py-3.5">
+              <span className="text-3xl">{reward.icon ?? '🎁'}</span>
               <div className="flex-1">
                 <p className="font-semibold text-gray-800">{reward.name}</p>
                 <p className="text-sm text-amber-500 font-medium">🎫 {reward.ticketCost} tiket</p>
@@ -217,6 +224,21 @@ export function RewardManager({ rewards, children, ticketBalances, onRedeemed, o
       {showAdd ? (
         <div className="bg-white border border-gray-200 rounded-2xl p-4">
           <p className="font-semibold text-gray-800 mb-3">Reward baru</p>
+
+          {/* Icon picker */}
+          <p className="text-xs text-gray-500 mb-1.5">Pilih ikon</p>
+          <div className="flex flex-wrap gap-2 mb-3">
+            {REWARD_ICONS.map((e) => (
+              <button
+                key={e}
+                onClick={() => setNewIcon(e)}
+                className={`text-2xl p-1.5 rounded-xl border-2 transition-all ${newIcon === e ? 'border-blue-400 bg-blue-50' : 'border-transparent'}`}
+              >
+                {e}
+              </button>
+            ))}
+          </div>
+
           <input
             type="text"
             value={newName}

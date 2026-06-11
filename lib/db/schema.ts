@@ -57,6 +57,7 @@ export const rewards = pgTable('rewards', {
   id: uuid('id').primaryKey().defaultRandom(),
   childId: uuid('child_id').references(() => children.id, { onDelete: 'cascade' }), // null = semua anak
   name: text('name').notNull(),
+  icon: text('icon').notNull().default('🎁'),
   ticketCost: integer('ticket_cost').notNull(),
   isActive: boolean('is_active').notNull().default(true),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
