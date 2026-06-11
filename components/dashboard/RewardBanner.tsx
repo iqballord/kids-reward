@@ -29,7 +29,7 @@ export function RewardBanner({ rewards, childId, totalTickets }: RewardBannerPro
   })
 
   return (
-    <div className="flex gap-3 overflow-x-auto pb-1">
+    <div className="flex gap-4 overflow-x-auto pb-1">
       {sorted.map((reward) => {
         const canRedeem = totalTickets >= reward.ticketCost
         const needed = reward.ticketCost - totalTickets
@@ -37,22 +37,22 @@ export function RewardBanner({ rewards, childId, totalTickets }: RewardBannerPro
         return (
           <div
             key={reward.id}
-            className={`flex-shrink-0 flex flex-col items-center gap-2 px-5 py-3 rounded-2xl border-2 transition-all duration-500 ${
+            className={`flex-shrink-0 flex flex-col items-center gap-3 px-8 py-5 rounded-3xl border-2 transition-all duration-500 ${
               canRedeem
                 ? 'border-amber-400 bg-amber-950/40'
                 : 'border-white/10 bg-white/5'
             }`}
           >
-            <span className="text-6xl leading-none">{reward.icon}</span>
-            <p className={`text-xl font-bold text-center ${canRedeem ? 'text-amber-300' : 'text-white/70'}`}>
+            <span className="text-8xl leading-none">{reward.icon}</span>
+            <p className={`text-2xl font-bold text-center ${canRedeem ? 'text-amber-300' : 'text-white/70'}`}>
               {reward.name}
             </p>
             {canRedeem ? (
-              <span className="text-lg font-black text-amber-400 bg-amber-400/20 px-4 py-1.5 rounded-full">
+              <span className="text-2xl font-black text-amber-400 bg-amber-400/20 px-5 py-2 rounded-full">
                 ✓ Bisa ditukar!
               </span>
             ) : (
-              <span className="text-xl font-bold text-white/60">
+              <span className="text-2xl font-bold text-white/60">
                 🎫 {needed} tiket lagi
               </span>
             )}
