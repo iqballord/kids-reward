@@ -41,6 +41,5 @@ export interface CompleteHabitResponse {
   habitLogId: string
   ticketsEarned: number
   totalTickets: number
-  showJournal: boolean
   allHabitsDone: boolean
 }

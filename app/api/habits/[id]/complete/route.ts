@@ -86,7 +86,6 @@ export async function POST(
     habitLogId: log.id,
     ticketsEarned: habit.ticketsValue,
     totalTickets,
-    showJournal: habit.isMeal,
     allHabitsDone,
   }
 

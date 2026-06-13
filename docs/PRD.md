@@ -12,7 +12,7 @@
 Orang tua dengan anak usia 3–6 tahun kesulitan membangun konsistensi kebiasaan harian anak (makan, sikat gigi, tidur, dll.) tanpa harus mengingatkan berulang kali setiap hari. Solusi reward chart fisik sudah pernah dicoba tapi gagal karena inkonsistensi pencatatan orang tua, bukan karena anaknya tidak mau.
 
 ### Proposed Solution
-Web app dua-surface: (1) Parent app di HP untuk input habit selesai dalam <5 detik, dan (2) TV Dashboard yang ditampilkan di layar utama rumah sebagai anchor visual sepanjang hari. Dilengkapi sistem tiket digital yang bisa ditukar reward fisik yang didefinisikan orang tua, jurnal makan per sesi untuk data dokter, dan hourglass visual ambient saat sesi makan berlangsung.
+Web app dua-surface: (1) Parent app di HP untuk input habit selesai dalam <5 detik, dan (2) TV Dashboard yang ditampilkan di layar utama rumah sebagai anchor visual sepanjang hari. Dilengkapi sistem tiket digital yang bisa ditukar reward fisik yang didefinisikan orang tua, meal journal independen dengan data klinis lengkap untuk konsultasi dokter, dan hourglass visual ambient saat sesi makan berlangsung.
 
 ### Business Impact
 - Mengurangi frekuensi orang tua mengingatkan anak → less friction dalam rumah tangga
@@ -93,7 +93,7 @@ Web app dua-surface: (1) Parent app di HP untuk input habit selesai dalam <5 det
 | Parent input: 1-tap centang habit | P0 | Dari HP, <5 detik per habit |
 | TV Dashboard side-by-side | P0 | Progress kedua anak terlihat bersamaan |
 | Hourglass ambient timer makan | P0 | Visual non-intimidatif, 30 menit |
-| Jurnal makan per sesi | P0 | Porsi, mood, makanan, catatan bebas |
+| Meal journal independen | P0 | Terpisah dari habit tracker. Field klinis: porsi, behavior awal/akhir, makan sama siapa, lokasi, makanan, durasi, konteks sebelum makan, catatan bebas |
 | Sistem tiket digital | P0 | Akumulasi per hari dan total |
 | Reward definition oleh orang tua | P0 | "X tiket = reward Y" yang bisa diset sendiri |
 | History per anak + export PDF/CSV | P0 | Filter by date range untuk dokter |
@@ -140,16 +140,21 @@ Acceptance Criteria:
 - [ ] TV Dashboard update dalam <3 detik setelah tap
 - [ ] Tiket otomatis bertambah sesuai nilai habit
 
-US-002: Input jurnal makan
+US-002: Input meal journal
 Sebagai orang tua,
-saya ingin mencatat detail sesi makan anak setiap kali selesai makan,
-agar saya punya data konkret untuk dibawa ke dokter.
+saya ingin mencatat detail sesi makan anak kapan saja dari tab Meal Log,
+agar saya punya data klinis konkret untuk dibawa ke dokter.
 
 Acceptance Criteria:
-- [ ] Form jurnal muncul saat habit "makan" di-tap selesai
-- [ ] Field: waktu mulai (time picker), durasi (menit), porsi (sedikit/setengah/habis), mood (fokus/distraksi/rewel), makanan apa, catatan bebas
-- [ ] Timestamp completion otomatis dicatat dari server saat tap "selesai" — tidak ada input manual dari orang tua
-- [ ] Bisa skip jurnal (optional, bukan mandatory)
+- [ ] Meal journal diakses dari bottom navigation tab tersendiri — tidak terhubung ke habit tracker
+- [ ] Form single-scroll bottom sheet dengan selector anak di dalam form
+- [ ] Tier 1 (wajib): meal type, waktu mulai, porsi, behavior awal makan, behavior akhir makan, makan sama siapa, lokasi
+- [ ] Tier 2 (opsional, accordion): makanan yang disajikan + flag ditolak, durasi makan, kondisi sebelum makan, catatan bebas
+- [ ] Meal type: Sarapan / Makan siang / Makan malam / Snack
+- [ ] Eaten with: Orang tua / Nenek/Kakek / Pengasuh / Di sekolah / Lain-lain (input manual)
+- [ ] Location: Rumah / Rumah nenek / Sekolah / Restoran / Lain-lain (input manual)
+- [ ] Behavior checklist (awal & akhir terpisah): Fokus & tenang / Distraksi / Rewel / Meludah / Gag / Muntah / Lari-lari / Negosiasi
+- [ ] Bisa diisi dalam <1 menit (Tier 1 saja ~25 detik)
 
 US-003: Export data untuk dokter
 Sebagai orang tua,

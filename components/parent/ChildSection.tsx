@@ -13,7 +13,7 @@ const SCHEDULE_LABELS: Record<string, string> = {
 
 interface ChildSectionProps {
   data: TodayData
-  onHabitComplete: (childId: string, habitId: string, showJournal: boolean, habitLogId: string) => void
+  onHabitComplete: (childId: string, habitId: string, habitLogId: string) => void
 }
 
 export function ChildSection({ data, onHabitComplete }: ChildSectionProps) {
@@ -52,8 +52,8 @@ export function ChildSection({ data, onHabitComplete }: ChildSectionProps) {
                   key={habit.id}
                   habit={habit}
                   childId={child.id}
-                  onComplete={(habitId, showJournal, habitLogId) =>
-                    onHabitComplete(child.id, habitId, showJournal, habitLogId)
+                  onComplete={(habitId, habitLogId) =>
+                    onHabitComplete(child.id, habitId, habitLogId)
                   }
                 />
               ))}

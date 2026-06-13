@@ -2,18 +2,11 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import { ChildSection } from '@/components/parent/ChildSection'
-import { MealJournalModal } from '@/components/parent/MealJournalModal'
 import type { TodayData } from '@/lib/types'
-
-interface PendingJournal {
-  childId: string
-  habitLogId: string
-}
 
 export default function HomePage() {
   const [data, setData] = useState<TodayData[]>([])
   const [loading, setLoading] = useState(true)
-  const [pendingJournal, setPendingJournal] = useState<PendingJournal | null>(null)
 
   const fetchToday = useCallback(async () => {
     const res = await fetch('/api/habits/today')
@@ -32,13 +25,7 @@ export default function HomePage() {
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
   }, [fetchToday])
 
-  function handleHabitComplete(
-    childId: string,
-    habitId: string,
-    showJournal: boolean,
-    habitLogId: string
-  ) {
-    // Optimistic update
+  function handleHabitComplete(childId: string, habitId: string, habitLogId: string) {
     setData((prev) =>
       prev.map((d) => {
         if (d.child.id !== childId) return d
@@ -60,10 +47,6 @@ export default function HomePage() {
     )
 
     fetchToday()
-
-    if (showJournal) {
-      setPendingJournal({ childId, habitLogId })
-    }
   }
 
   if (loading) {
@@ -92,13 +75,6 @@ export default function HomePage() {
         />
       ))}
 
-      {pendingJournal && (
-        <MealJournalModal
-          childId={pendingJournal.childId}
-          habitLogId={pendingJournal.habitLogId}
-          onDone={() => setPendingJournal(null)}
-        />
-      )}
     </div>
   )
 }
