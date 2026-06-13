@@ -125,18 +125,24 @@ habit_logs
   tickets_earned int NOT NULL
 
 meal_journals
-  id               uuid PK
-  child_id         uuid FK → children.id
-  habit_log_id     uuid FK → habit_logs.id  -- null jika jurnal manual
-  date             date NOT NULL
-  meal_type        text NOT NULL         -- 'breakfast' | 'lunch' | 'dinner'
-  start_time       time                  -- waktu mulai makan (input orang tua)
-  duration_min     int                   -- durasi makan dalam menit (input orang tua)
-  portion          text NOT NULL         -- 'little' | 'half' | 'all'
-  mood             text NOT NULL         -- 'focused' | 'distracted' | 'fussy'
-  food_description text
-  notes            text
-  created_at       timestamptz DEFAULT now()  -- timestamp completion otomatis
+  id                 uuid PK
+  child_id           uuid FK → children.id
+  date               date NOT NULL
+  meal_type          text NOT NULL         -- 'breakfast' | 'lunch' | 'dinner' | 'snack'
+  start_time         time                  -- waktu mulai makan
+  portion            text NOT NULL         -- 'none' | 'little' | 'half' | 'all'
+  behavior_start     text[]                -- multi-select: ['focused','distracted','fussy','spitting','gagging','vomiting','running','negotiating']
+  behavior_end       text[]                -- same options, snapshot akhir sesi
+  eaten_with         text NOT NULL         -- 'parents' | 'grandparents' | 'caregiver' | 'school' | 'other'
+  eaten_with_other   text                  -- diisi jika eaten_with = 'other'
+  location           text NOT NULL         -- 'home' | 'grandparents_home' | 'school' | 'restaurant' | 'other'
+  location_other     text                  -- diisi jika location = 'other'
+  food_offered       text                  -- deskripsi makanan yang disajikan
+  food_rejected      boolean DEFAULT false -- ada makanan yang ditolak?
+  duration_minutes   int                   -- durasi makan dalam menit
+  pre_meal_context   text                  -- 'after_nap' | 'after_play' | 'after_school' | 'sick' | 'normal'
+  notes              text
+  created_at         timestamptz DEFAULT now()
 
 ticket_transactions
   id          uuid PK
@@ -176,7 +182,7 @@ CREATE INDEX ON ticket_transactions (child_id, created_at);
 ## 5. API Routes
 
 ### `POST /api/habits/[id]/complete`
-Mencentang habit selesai. Jika habit adalah tipe "meal", response menyertakan flag `show_journal: true` agar parent app menampilkan modal jurnal.
+Mencentang habit selesai. Tidak ada koneksi ke meal journal — meal log diinput terpisah via tab Meal Log.
 
 **Request:**
 ```json
@@ -189,7 +195,6 @@ Mencentang habit selesai. Jika habit adalah tipe "meal", response menyertakan fl
   "habit_log_id": "uuid",
   "tickets_earned": 2,
   "total_tickets": 14,
-  "show_journal": true,
   "all_habits_done": false
 }
 ```
@@ -202,20 +207,47 @@ Mencentang habit selesai. Jika habit adalah tipe "meal", response menyertakan fl
 ---
 
 ### `POST /api/meal-journal`
-Simpan jurnal makan. Dipanggil setelah `complete` jika orang tua mengisi form.
+Simpan meal journal. Diakses langsung dari tab Meal Log — tidak terhubung ke habit tracker.
 
 **Request:**
 ```json
 {
   "child_id": "uuid",
-  "habit_log_id": "uuid",
-  "date": "2026-06-11",
+  "date": "2026-06-14",
   "meal_type": "dinner",
+  "start_time": "18:30",
   "portion": "half",
-  "mood": "distracted",
-  "food_description": "nasi + ayam",
-  "notes": "makan sambil jalan terus"
+  "behavior_start": ["focused"],
+  "behavior_end": ["running", "negotiating"],
+  "eaten_with": "parents",
+  "location": "home",
+  "food_offered": "nasi + ayam + sayur",
+  "food_rejected": false,
+  "duration_minutes": 25,
+  "pre_meal_context": "after_play",
+  "notes": "10 menit pertama bagus, setelah itu lari-lari"
 }
+```
+
+### `GET /api/meal-journal?child_id=&from=&to=`
+Ambil history meal journal per anak dengan filter tanggal. Dipakai oleh halaman history dan export dokter.
+
+**Response:**
+```json
+[
+  {
+    "id": "uuid",
+    "date": "2026-06-14",
+    "meal_type": "dinner",
+    "start_time": "18:30",
+    "portion": "half",
+    "behavior_start": ["focused"],
+    "behavior_end": ["running"],
+    "eaten_with": "parents",
+    "location": "home",
+    "duration_minutes": 25
+  }
+]
 ```
 
 ---
@@ -392,7 +424,7 @@ State hourglass disimpan di DB (`hourglass_sessions`) agar jika browser TV refre
 Di-generate di API route dengan `papaparse`. Dua sheet dalam satu file tidak bisa di CSV murni, jadi export dalam dua file terpisah yang di-zip, atau satu CSV dengan semua kolom.
 
 **Kolom CSV (meal journal):**
-`date, child_name, meal_type, start_time, duration_min, portion, mood, food_description, notes, completed_at`
+`date, child_name, meal_type, start_time, duration_minutes, portion, behavior_start, behavior_end, eaten_with, location, food_offered, food_rejected, pre_meal_context, notes, created_at`
 
 ### PDF
 Di-generate client-side dengan `@react-pdf/renderer`. Layout sederhana: header berisi nama anak + rentang tanggal, tabel jurnal makan, ringkasan habit completion rate per minggu.

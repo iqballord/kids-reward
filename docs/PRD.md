@@ -212,8 +212,9 @@ Acceptance Criteria:
 | FR-02 | Orang tua bisa centang habit selesai dari mobile browser | P0 |
 | FR-03 | TV Dashboard auto-refresh saat ada update | P0 |
 | FR-04 | Hourglass timer bisa dimulai manual oleh orang tua untuk sesi makan | P0 |
-| FR-05 | Jurnal makan tersimpan dengan metadata lengkap per sesi: waktu mulai, durasi (menit), porsi, mood, makanan, catatan bebas | P0 |
-| FR-05a | Setiap tap "selesai" habit otomatis mencatat timestamp completion (tanpa input tambahan dari orang tua) | P0 |
+| FR-05 | Meal journal independen dari habit tracker — diakses via tab tersendiri di parent app | P0 |
+| FR-05a | Field klinis meal journal: meal_type, start_time, portion, behavior_start (multi-select), behavior_end (multi-select), eaten_with, location, food_offered, duration_minutes, pre_meal_context, notes | P0 |
+| FR-05b | eaten_with dan location mendukung opsi "Lain-lain" dengan input teks manual | P0 |
 | FR-06 | Tiket terakumulasi per hari dan total, tidak bisa negatif | P0 |
 | FR-07 | Orang tua bisa redeem tiket untuk reward yang sudah didefinisikan | P0 |
 | FR-08 | History bisa difilter per anak dan rentang tanggal | P0 |
@@ -267,18 +268,16 @@ Acceptance Criteria:
 ### 5.3 Parent App Flow
 
 ```
-Home (habit list hari ini)
-├── Tap habit → Selesai ✅ + tiket bertambah
-│   └── [Jika habit "makan"] → Modal jurnal makan (optional, bisa skip)
-│       ├── Porsi: [Sedikit] [Setengah] [Habis]
-│       ├── Mood: [Fokus] [Distraksi] [Rewel]  
-│       ├── Makanan: (text input)
-│       └── Catatan: (text area, optional)
-├── Start hourglass → Pilih anak → Hourglass muncul di TV
-├── Settings
-│   ├── Kelola habit per anak
-│   ├── Set reward rules
-│   └── Lihat/export history
+Bottom Navigation
+├── 🏠 Habit  → Habit list hari ini
+│   └── Tap habit → Selesai ✅ + tiket bertambah (tidak ada koneksi ke meal log)
+└── 🍽️ Meal Log → Halaman meal journal
+    ├── Tab per anak (untuk lihat history)
+    ├── "+ Log Makan" → Bottom sheet form
+    │   ├── Selector anak di dalam form
+    │   ├── Tier 1 (scroll, wajib): meal type, waktu, porsi, behavior awal, behavior akhir, sama siapa, lokasi
+    │   └── Tier 2 (accordion, opsional): makanan, durasi, konteks, catatan
+    └── History per anak (per hari / per minggu)
 ```
 
 ---
@@ -329,9 +328,13 @@ HabitLog
 ├── tickets_earned
 
 MealJournal
-├── id, child_id, habit_log_id, date, meal_type (breakfast/lunch/dinner)
-├── portion (little/half/all), mood (focused/distracted/fussy)
-├── food_description, notes, created_at
+├── id, child_id, date, meal_type (breakfast/lunch/dinner/snack)
+├── start_time, portion (none/little/half/all)
+├── behavior_start (text array), behavior_end (text array)
+├── eaten_with, eaten_with_other (jika lain-lain)
+├── location, location_other (jika lain-lain)
+├── food_offered, food_rejected (boolean), duration_minutes
+├── pre_meal_context, notes, created_at
 
 TicketTransaction
 ├── id, child_id, type (earned/redeemed), amount, reason, created_at

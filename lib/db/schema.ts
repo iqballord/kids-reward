@@ -35,15 +35,21 @@ export const habitLogs = pgTable('habit_logs', {
 export const mealJournals = pgTable('meal_journals', {
   id: uuid('id').primaryKey().defaultRandom(),
   childId: uuid('child_id').notNull().references(() => children.id, { onDelete: 'cascade' }),
-  habitLogId: uuid('habit_log_id').references(() => habitLogs.id, { onDelete: 'set null' }),
   date: date('date').notNull(),
-  mealType: text('meal_type').notNull(), // 'breakfast' | 'lunch' | 'dinner'
-  startTime: time('start_time'),         // waktu mulai makan (HH:MM)
-  portion: text('portion').notNull(),    // 'little' | 'half' | 'all'
-  mood: text('mood').notNull(),          // 'focused' | 'distracted' | 'fussy'
-  foodDescription: text('food_description'),
-  notes: text('notes'),
+  mealType: text('meal_type').notNull(),      // 'breakfast' | 'lunch' | 'dinner' | 'snack'
+  startTime: time('start_time'),
+  portion: text('portion').notNull(),         // 'none' | 'little' | 'half' | 'all'
+  behaviorStart: text('behavior_start').array().notNull().default([]),
+  behaviorEnd: text('behavior_end').array().notNull().default([]),
+  eatenWith: text('eaten_with').notNull(),    // 'parents' | 'grandparents' | 'caregiver' | 'school' | 'other'
+  eatenWithOther: text('eaten_with_other'),
+  location: text('location').notNull(),       // 'home' | 'grandparents_home' | 'school' | 'restaurant' | 'other'
+  locationOther: text('location_other'),
+  foodOffered: text('food_offered'),
+  foodRejected: boolean('food_rejected').notNull().default(false),
   durationMinutes: integer('duration_minutes'),
+  preMealContext: text('pre_meal_context'),   // 'after_nap' | 'after_play' | 'after_school' | 'sick' | 'normal'
+  notes: text('notes'),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
 })
 
@@ -94,5 +100,4 @@ export const habitsRelations = relations(habits, ({ one, many }) => ({
 export const habitLogsRelations = relations(habitLogs, ({ one }) => ({
   habit: one(habits, { fields: [habitLogs.habitId], references: [habits.id] }),
   child: one(children, { fields: [habitLogs.childId], references: [children.id] }),
-  mealJournal: one(mealJournals, { fields: [habitLogs.id], references: [mealJournals.habitLogId] }),
 }))

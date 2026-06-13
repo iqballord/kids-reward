@@ -4,7 +4,8 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
 const NAV = [
-  { href: '/',          label: 'Hari Ini',  icon: '📋' },
+  { href: '/',          label: 'Habit',     icon: '📋' },
+  { href: '/meal',      label: 'Meal Log',  icon: '🍽️' },
   { href: '/settings',  label: 'Pengaturan', icon: '⚙️' },
 ]
 
@@ -22,7 +23,7 @@ export default function ParentLayout({ children }: { children: React.ReactNode }
       {/* Bottom nav */}
       <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 flex z-10">
         {NAV.map((item) => {
-          const active = pathname === item.href
+          const active = item.href === '/' ? pathname === '/' : pathname.startsWith(item.href)
           return (
             <Link
               key={item.href}

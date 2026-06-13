@@ -141,9 +141,11 @@ Opsi B (single multi-select + "berubah setelah X menit") — lebih simple tapi k
 ## Status Implementasi
 
 - [x] Koneksi habit tracker → meal journal diputus
-- [x] `MealJournalModal` existing dipertahankan sebagai komponen (akan di-refactor)
-- [ ] Schema database: tambah `behavior_start`, `behavior_end`, `eaten_with`, `pre_meal_context`, ubah `meal_type` (tambah snack pagi/sore), ubah `behavior` dari teks ke array
-- [ ] Route `/meal` dan sub-routes
-- [ ] Form meal log baru dengan struktur Tier 1/2/3
-- [ ] History view per anak
-- [ ] Doctor report / export (fase berikutnya)
+- [x] Schema database: kolom baru `behavior_start`, `behavior_end`, `eaten_with`, `eaten_with_other`, `location`, `location_other`, `food_offered`, `food_rejected`, `pre_meal_context` — kolom lama `mood`, `food_description`, `habit_log_id` dihapus
+- [x] API `POST /api/meal-journal` diperbarui sesuai schema baru
+- [x] API `GET /api/meal-journal?child_id=&from=&to=` ditambahkan untuk history
+- [x] API `GET /api/children` ditambahkan
+- [x] Bottom navigation parent app: tab Habit | Meal Log | Pengaturan
+- [x] Halaman `/meal` — history per anak dengan tab switcher
+- [x] Komponen `MealLogForm` — single scroll bottom sheet, Tier 1 wajib + Tier 2 accordion
+- [ ] Doctor report / export PDF (fase berikutnya)
