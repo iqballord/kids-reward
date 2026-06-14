@@ -80,28 +80,52 @@ function nowTime() {
   return `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`
 }
 
+export type MealJournalData = {
+  id: string
+  childId: string
+  date: string
+  mealType: string
+  startTime: string | null
+  portion: string
+  behaviorStart: string[]
+  behaviorEnd: string[]
+  eatenWith: string
+  eatenWithOther: string | null
+  location: string
+  locationOther: string | null
+  foodOffered: string | null
+  foodRejected: boolean
+  durationMinutes: number | null
+  preMealContext: string | null
+  notes: string | null
+}
+
 interface MealLogFormProps {
   children: Child[]
+  initialData?: MealJournalData
   onDone: () => void
 }
 
-export function MealLogForm({ children, onDone }: MealLogFormProps) {
-  const [childId, setChildId] = useState(children[0]?.id ?? '')
-  const [mealType, setMealType] = useState<MealType>(guessMealType())
-  const [startTime, setStartTime] = useState(nowTime)
-  const [portion, setPortion] = useState<Portion | null>(null)
-  const [behaviorStart, setBehaviorStart] = useState<string[]>([])
-  const [behaviorEnd, setBehaviorEnd] = useState<string[]>([])
-  const [eatenWith, setEatenWith] = useState<EatenWith | null>(null)
-  const [eatenWithOther, setEatenWithOther] = useState('')
-  const [location, setLocation] = useState<Location | null>(null)
-  const [locationOther, setLocationOther] = useState('')
-  const [showDetail, setShowDetail] = useState(false)
-  const [foodOffered, setFoodOffered] = useState('')
-  const [foodRejected, setFoodRejected] = useState(false)
-  const [duration, setDuration] = useState<number | null>(null)
-  const [preMealContext, setPreMealContext] = useState<PreMealContext | null>(null)
-  const [notes, setNotes] = useState('')
+export function MealLogForm({ children, initialData, onDone }: MealLogFormProps) {
+  const isEdit = !!initialData
+  const [childId, setChildId] = useState(initialData?.childId ?? children[0]?.id ?? '')
+  const [mealType, setMealType] = useState<MealType>((initialData?.mealType as MealType) ?? guessMealType())
+  const [startTime, setStartTime] = useState(initialData?.startTime?.slice(0, 5) ?? nowTime())
+  const [portion, setPortion] = useState<Portion | null>((initialData?.portion as Portion) ?? null)
+  const [behaviorStart, setBehaviorStart] = useState<string[]>(initialData?.behaviorStart ?? [])
+  const [behaviorEnd, setBehaviorEnd] = useState<string[]>(initialData?.behaviorEnd ?? [])
+  const [eatenWith, setEatenWith] = useState<EatenWith | null>((initialData?.eatenWith as EatenWith) ?? null)
+  const [eatenWithOther, setEatenWithOther] = useState(initialData?.eatenWithOther ?? '')
+  const [location, setLocation] = useState<Location | null>((initialData?.location as Location) ?? null)
+  const [locationOther, setLocationOther] = useState(initialData?.locationOther ?? '')
+  const [showDetail, setShowDetail] = useState(
+    !!(initialData?.foodOffered || initialData?.durationMinutes || initialData?.preMealContext || initialData?.notes)
+  )
+  const [foodOffered, setFoodOffered] = useState(initialData?.foodOffered ?? '')
+  const [foodRejected, setFoodRejected] = useState(initialData?.foodRejected ?? false)
+  const [duration, setDuration] = useState<number | null>(initialData?.durationMinutes ?? null)
+  const [preMealContext, setPreMealContext] = useState<PreMealContext | null>((initialData?.preMealContext as PreMealContext) ?? null)
+  const [notes, setNotes] = useState(initialData?.notes ?? '')
   const [saving, setSaving] = useState(false)
 
   function toggleBehavior(list: string[], setList: (v: string[]) => void, value: string) {
@@ -113,29 +137,33 @@ export function MealLogForm({ children, onDone }: MealLogFormProps) {
   async function handleSave() {
     if (!canSave) return
     setSaving(true)
+    const payload = {
+      child_id: childId,
+      date: initialData?.date ?? todayWIB(),
+      meal_type: mealType,
+      start_time: startTime || null,
+      portion,
+      behavior_start: behaviorStart,
+      behavior_end: behaviorEnd,
+      eaten_with: eatenWith,
+      eaten_with_other: eatenWith === 'other' ? eatenWithOther : null,
+      location,
+      location_other: location === 'other' ? locationOther : null,
+      food_offered: foodOffered || null,
+      food_rejected: foodRejected,
+      duration_minutes: duration,
+      pre_meal_context: preMealContext,
+      notes: notes || null,
+    }
     try {
-      await fetch('/api/meal-journal', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          child_id: childId,
-          date: todayWIB(),
-          meal_type: mealType,
-          start_time: startTime || null,
-          portion,
-          behavior_start: behaviorStart,
-          behavior_end: behaviorEnd,
-          eaten_with: eatenWith,
-          eaten_with_other: eatenWith === 'other' ? eatenWithOther : null,
-          location,
-          location_other: location === 'other' ? locationOther : null,
-          food_offered: foodOffered || null,
-          food_rejected: foodRejected,
-          duration_minutes: duration,
-          pre_meal_context: preMealContext,
-          notes: notes || null,
-        }),
-      })
+      await fetch(
+        isEdit ? `/api/meal-journal/${initialData.id}` : '/api/meal-journal',
+        {
+          method: isEdit ? 'PATCH' : 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        }
+      )
       onDone()
     } finally {
       setSaving(false)
@@ -150,7 +178,7 @@ export function MealLogForm({ children, onDone }: MealLogFormProps) {
       >
         <div className="sticky top-0 bg-white rounded-t-3xl pt-4 px-6 pb-2 border-b border-gray-100">
           <div className="w-10 h-1 bg-gray-200 rounded-full mx-auto mb-4" />
-          <h2 className="text-xl font-bold text-gray-900">🍽️ Log Makan</h2>
+          <h2 className="text-xl font-bold text-gray-900">{isEdit ? '✏️ Edit Log Makan' : '🍽️ Log Makan'}</h2>
         </div>
 
         <div className="px-6 pt-4 pb-8 space-y-6">
