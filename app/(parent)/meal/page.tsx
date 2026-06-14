@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState, useCallback } from 'react'
+import Link from 'next/link'
 import { MealLogForm, type MealJournalData } from '@/components/parent/MealLogForm'
 import type { Child } from '@/lib/types'
 
@@ -299,12 +300,20 @@ export default function MealPage() {
     <div>
       <div className="flex items-center justify-between mb-5">
         <h2 className="text-lg font-bold text-gray-900">Meal Log</h2>
-        <button
-          onClick={() => setShowForm(true)}
-          className="px-4 py-2 bg-blue-500 text-white text-sm font-semibold rounded-2xl active:scale-95 transition-transform"
-        >
-          + Log Makan
-        </button>
+        <div className="flex gap-2">
+          <Link
+            href="/meal/report"
+            className="px-3 py-2 bg-gray-100 text-gray-600 text-sm font-semibold rounded-2xl"
+          >
+            📋 Report
+          </Link>
+          <button
+            onClick={() => setShowForm(true)}
+            className="px-4 py-2 bg-blue-500 text-white text-sm font-semibold rounded-2xl active:scale-95 transition-transform"
+          >
+            + Log Makan
+          </button>
+        </div>
       </div>
 
       {/* Tab per anak */}
