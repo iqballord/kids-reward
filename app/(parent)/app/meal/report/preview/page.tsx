@@ -3,6 +3,7 @@
 import { useMemo } from 'react'
 import { buildReport, trendArrow, trendColor, type ReportData } from '@/lib/report'
 import { generateDummyJournals } from '@/lib/dummy-report'
+import { calcAge } from '@/lib/date'
 
 const EATEN_WITH_LABEL: Record<string, string> = {
   parents: 'Orang tua',
@@ -36,7 +37,7 @@ const PORTION_LABEL: Record<string, string> = {
   all: 'Habis',
 }
 
-const DUMMY_CHILD = { id: 'dummy', name: 'Farhan', age: 3 }
+const DUMMY_CHILD = { id: 'dummy', name: 'Farhan', dateOfBirth: '2023-01-15' }
 const YEAR = 2026
 const MONTH = 5 // Mei
 
@@ -90,7 +91,7 @@ export default function ReportPreviewPage() {
           <div>
             <h1 className="text-xl font-bold text-gray-900 print:text-2xl">Laporan Perilaku Makan</h1>
             <p className="text-sm text-gray-600 mt-0.5">
-              <span className="font-semibold">{DUMMY_CHILD.name}</span> · {DUMMY_CHILD.age} tahun
+              <span className="font-semibold">{DUMMY_CHILD.name}</span> · {calcAge(DUMMY_CHILD.dateOfBirth)} tahun
             </p>
             <p className="text-sm text-gray-500 mt-0.5">
               Periode: 1 Mei 2026 – 31 Mei 2026

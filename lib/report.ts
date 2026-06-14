@@ -16,7 +16,7 @@ export type WeekStats = {
 }
 
 export type ReportData = {
-  child: { id: string; name: string; age: number }
+  child: { id: string; name: string; dateOfBirth: string }
   from: string
   to: string
   journals: MealJournal[]
@@ -72,7 +72,7 @@ function calcStats(journals: MealJournal[]): WeekStats {
 }
 
 export function buildReport(
-  child: { id: string; name: string; age: number },
+  child: { id: string; name: string; dateOfBirth: string },
   journals: MealJournal[],
   from: string,
   to: string

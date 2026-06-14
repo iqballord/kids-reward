@@ -4,11 +4,13 @@ import { children, habits, habitLogs, ticketTransactions } from '@/lib/db/schema
 import { eq, and, sum } from 'drizzle-orm'
 import type { TodayData, HabitWithStatus } from '@/lib/types'
 import { todayWIB } from '@/lib/date'
+import { requireFamilyContext } from '@/lib/family'
 
 export async function GET() {
+  const { familyId } = await requireFamilyContext()
   const today = todayWIB()
 
-  const allChildren = await db.select().from(children).orderBy(children.createdAt)
+  const allChildren = await db.select().from(children).where(eq(children.familyId, familyId)).orderBy(children.createdAt)
 
   const result: TodayData[] = await Promise.all(
     allChildren.map(async (child) => {

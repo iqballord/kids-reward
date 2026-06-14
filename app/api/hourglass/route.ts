@@ -1,13 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
-import { hourglassSessions } from '@/lib/db/schema'
+import { hourglassSessions, children } from '@/lib/db/schema'
 import { eq, and, isNull } from 'drizzle-orm'
-import { emitEvent } from '@/lib/sse'
+import { pusherServer, familyChannel } from '@/lib/pusher'
 import { computeState } from '@/lib/hourglass'
+import { requireFamilyContext } from '@/lib/family'
+
+async function verifyChildOwnership(childId: string, familyId: string) {
+  const [child] = await db.select({ id: children.id }).from(children).where(
+    and(eq(children.id, childId), eq(children.familyId, familyId))
+  )
+  return !!child
+}
 
 export async function GET(request: NextRequest) {
+  const { familyId } = await requireFamilyContext()
   const childId = request.nextUrl.searchParams.get('child_id')
   if (!childId) return NextResponse.json({ session: null })
+  if (!await verifyChildOwnership(childId, familyId)) return NextResponse.json({ session: null })
 
   const [session] = await db
     .select()
@@ -21,6 +31,7 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  const { familyId } = await requireFamilyContext()
   const body = await request.json()
   const { child_id, action, duration_s = 1800 } = body as {
     child_id: string
@@ -30,6 +41,10 @@ export async function POST(request: NextRequest) {
 
   if (!child_id || !action) {
     return NextResponse.json({ error: 'child_id and action required' }, { status: 400 })
+  }
+
+  if (!await verifyChildOwnership(child_id, familyId)) {
+    return NextResponse.json({ error: 'Child not found' }, { status: 404 })
   }
 
   // Ambil sesi aktif (belum ended)
@@ -53,7 +68,7 @@ export async function POST(request: NextRequest) {
       .values({ childId: child_id, startedAt: new Date(), durationS: duration_s })
       .returning()
 
-    emitEvent('hourglass_started', { childId: child_id, sessionId: session.id, durationS: duration_s, startedAt: session.startedAt })
+    await pusherServer.trigger(familyChannel(familyId), 'hourglass_started', { childId: child_id, sessionId: session.id, durationS: duration_s, startedAt: session.startedAt })
     return NextResponse.json({ session: computeState(session) })
   }
 
@@ -69,7 +84,7 @@ export async function POST(request: NextRequest) {
       .where(eq(hourglassSessions.id, active.id))
       .returning()
 
-    emitEvent('hourglass_paused', { childId: child_id, sessionId: active.id })
+    await pusherServer.trigger(familyChannel(familyId), 'hourglass_paused', { childId: child_id, sessionId: active.id })
     return NextResponse.json({ session: computeState(updated) })
   }
 
@@ -85,7 +100,7 @@ export async function POST(request: NextRequest) {
       .where(eq(hourglassSessions.id, active.id))
       .returning()
 
-    emitEvent('hourglass_resumed', { childId: child_id, sessionId: active.id })
+    await pusherServer.trigger(familyChannel(familyId), 'hourglass_resumed', { childId: child_id, sessionId: active.id })
     return NextResponse.json({ session: computeState(updated) })
   }
 
@@ -96,7 +111,7 @@ export async function POST(request: NextRequest) {
       .where(eq(hourglassSessions.id, active.id))
       .returning()
 
-    emitEvent('hourglass_stopped', { childId: child_id, sessionId: active.id })
+    await pusherServer.trigger(familyChannel(familyId), 'hourglass_stopped', { childId: child_id, sessionId: active.id })
     return NextResponse.json({ session: computeState(updated) })
   }
 

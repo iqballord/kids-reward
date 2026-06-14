@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import Link from 'next/link'
 import { buildReport, trendArrow, trendColor, type ReportData } from '@/lib/report'
+import { calcAge } from '@/lib/date'
 import type { Child } from '@/lib/types'
 import type { MealJournalData } from '@/components/parent/MealLogForm'
 
@@ -223,7 +224,7 @@ export default function ReportPage() {
           <div className="hidden print:block mb-6">
             <h1 className="text-xl font-bold text-gray-900">Laporan Perilaku Makan</h1>
             <p className="text-sm text-gray-600 mt-1">
-              {report.child.name} · {report.child.age} tahun
+              {report.child.name} · {calcAge(report.child.dateOfBirth)} tahun
             </p>
             <p className="text-sm text-gray-500">
               Periode: {formatDateID(report.from)} – {formatDateID(report.to)}

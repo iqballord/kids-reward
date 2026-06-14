@@ -1,12 +1,14 @@
-import { neon } from '@neondatabase/serverless'
-import { drizzle } from 'drizzle-orm/neon-http'
-import * as schema from './schema'
+import { NextRequest, NextResponse } from 'next/server'
+import { auth } from '@clerk/nextjs/server'
+import { db } from '@/lib/db'
+import { families, familyMembers, children, habits } from '@/lib/db/schema'
+import { eq } from 'drizzle-orm'
 import { randomBytes } from 'crypto'
+import { calcAge } from '@/lib/date'
 
-const sql = neon(process.env.DATABASE_URL_UNPOOLED!)
-const db = drizzle(sql, { schema })
+function calcAgeFromDob(dob: string) { return calcAge(dob) }
 
-const HABITS_AGE_3 = [
+const HABITS_AGE_UNDER_4 = [
   { name: 'Makan pagi habis',  icon: '🍳', schedule: 'morning',   ticketsValue: 2, isMeal: true,  sortOrder: 1 },
   { name: 'Sikat gigi pagi',   icon: '🦷', schedule: 'morning',   ticketsValue: 1, isMeal: false, sortOrder: 2 },
   { name: 'Tidur siang',       icon: '😴', schedule: 'afternoon', ticketsValue: 2, isMeal: false, sortOrder: 3 },
@@ -18,7 +20,7 @@ const HABITS_AGE_3 = [
   { name: 'Tidur tepat waktu', icon: '🌙', schedule: 'evening',   ticketsValue: 2, isMeal: false, sortOrder: 9 },
 ]
 
-const HABITS_AGE_6 = [
+const HABITS_AGE_4_PLUS = [
   { name: 'Makan pagi habis',        icon: '🍳', schedule: 'morning',   ticketsValue: 2, isMeal: true,  sortOrder: 1 },
   { name: 'Sikat gigi pagi',         icon: '🦷', schedule: 'morning',   ticketsValue: 1, isMeal: false, sortOrder: 2 },
   { name: 'Makan siang habis',       icon: '🍱', schedule: 'afternoon', ticketsValue: 2, isMeal: true,  sortOrder: 3 },
@@ -31,43 +33,65 @@ const HABITS_AGE_6 = [
   { name: 'Tidur tepat waktu',       icon: '🌙', schedule: 'evening',   ticketsValue: 2, isMeal: false, sortOrder: 10 },
 ]
 
-async function seed() {
-  const existingChildren = await db.select().from(schema.children)
-  if (existingChildren.length > 0) {
-    console.log('Data already exists, skipping seed.')
-    process.exit(0)
+export async function POST(request: NextRequest) {
+  const { userId } = await auth()
+  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  // Cek sudah punya keluarga
+  const existing = await db
+    .select()
+    .from(familyMembers)
+    .where(eq(familyMembers.clerkUserId, userId))
+    .limit(1)
+
+  if (existing.length > 0) {
+    return NextResponse.json({ error: 'Sudah punya keluarga' }, { status: 409 })
   }
 
-  console.log('Seeding family...')
+  const body = await request.json()
+  const { familyName, childrenData } = body as {
+    familyName: string
+    childrenData: { name: string; dateOfBirth: string; avatarUrl?: string }[]
+  }
+
+  if (!familyName?.trim() || !childrenData?.length) {
+    return NextResponse.json({ error: 'familyName dan minimal 1 anak diperlukan' }, { status: 400 })
+  }
+
+  // Generate slug unik
+  let slug = randomBytes(4).toString('hex')
+  const slugExists = await db.select().from(families).where(eq(families.slug, slug))
+  if (slugExists.length > 0) slug = randomBytes(4).toString('hex') + Date.now().toString(36)
+
+  // Buat family
   const [family] = await db
-    .insert(schema.families)
-    .values({ name: 'Keluarga Iqbal', slug: randomBytes(4).toString('hex') })
+    .insert(families)
+    .values({ name: familyName.trim(), slug })
     .returning()
-  console.log(`Created family: ${family.name} (slug: ${family.slug})`)
 
-  console.log('Seeding children...')
-  const [child1, child2] = await db
-    .insert(schema.children)
-    .values([
-      { name: 'Anak 1', dateOfBirth: '2023-01-01', familyId: family.id },
-      { name: 'Anak 2', dateOfBirth: '2020-01-01', familyId: family.id },
-    ])
-    .returning()
-  console.log(`Created: ${child1.name}, ${child2.name}`)
+  // Buat family member (owner)
+  await db.insert(familyMembers).values({
+    familyId: family.id,
+    clerkUserId: userId,
+    role: 'owner',
+  })
 
-  console.log('Seeding habits...')
-  await db.insert(schema.habits).values(HABITS_AGE_3.map(h => ({ ...h, childId: child1.id })))
-  await db.insert(schema.habits).values(HABITS_AGE_6.map(h => ({ ...h, childId: child2.id })))
+  // Buat children + preload habits
+  for (const child of childrenData) {
+    const age = calcAgeFromDob(child.dateOfBirth)
+    const [newChild] = await db
+      .insert(children)
+      .values({
+        familyId: family.id,
+        name: child.name.trim(),
+        dateOfBirth: child.dateOfBirth,
+        avatarUrl: child.avatarUrl ?? null,
+      })
+      .returning()
 
-  console.log('Seeding rewards...')
-  await db.insert(schema.rewards).values([
-    { childId: null, name: 'Es krim',           icon: '🍦', ticketCost: 10 },
-    { childId: null, name: 'Nonton 1 jam',       icon: '📺', ticketCost: 15 },
-    { childId: null, name: 'Main game 30 menit', icon: '🎮', ticketCost: 8 },
-  ])
+    const habitTemplate = age < 4 ? HABITS_AGE_UNDER_4 : HABITS_AGE_4_PLUS
+    await db.insert(habits).values(habitTemplate.map(h => ({ ...h, childId: newChild.id })))
+  }
 
-  console.log('Seed complete.')
-  process.exit(0)
+  return NextResponse.json({ familySlug: family.slug })
 }
-
-seed().catch(err => { console.error('Seed failed:', err); process.exit(1) })

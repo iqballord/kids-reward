@@ -3,8 +3,10 @@ import { db } from '@/lib/db'
 import { mealJournals, children } from '@/lib/db/schema'
 import { eq, and, gte, lte, desc } from 'drizzle-orm'
 import { todayWIB } from '@/lib/date'
+import { requireFamilyContext } from '@/lib/family'
 
 export async function POST(request: NextRequest) {
+  const { familyId } = await requireFamilyContext()
   const body = await request.json()
   const {
     child_id, date, meal_type, start_time, portion,
@@ -16,6 +18,12 @@ export async function POST(request: NextRequest) {
   if (!child_id || !meal_type || !portion || !eaten_with || !location) {
     return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
   }
+
+  // Validasi child milik keluarga ini
+  const [child] = await db.select({ id: children.id }).from(children).where(
+    and(eq(children.id, child_id), eq(children.familyId, familyId))
+  )
+  if (!child) return NextResponse.json({ error: 'Child not found' }, { status: 404 })
 
   const [journal] = await db
     .insert(mealJournals)
@@ -43,14 +51,19 @@ export async function POST(request: NextRequest) {
 }
 
 export async function GET(request: NextRequest) {
+  const { familyId } = await requireFamilyContext()
   const { searchParams } = new URL(request.url)
   const childId = searchParams.get('child_id')
   const from = searchParams.get('from')
   const to = searchParams.get('to')
 
-  if (!childId) {
-    return NextResponse.json({ error: 'child_id is required' }, { status: 400 })
-  }
+  if (!childId) return NextResponse.json({ error: 'child_id is required' }, { status: 400 })
+
+  // Validasi child milik keluarga ini
+  const [child] = await db.select({ id: children.id }).from(children).where(
+    and(eq(children.id, childId), eq(children.familyId, familyId))
+  )
+  if (!child) return NextResponse.json({ error: 'Child not found' }, { status: 404 })
 
   const conditions = [eq(mealJournals.childId, childId)]
   if (from) conditions.push(gte(mealJournals.date, from))

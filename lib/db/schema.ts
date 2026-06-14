@@ -1,10 +1,27 @@
 import { pgTable, uuid, text, integer, boolean, timestamp, date, time } from 'drizzle-orm/pg-core'
+// date is reused for dateOfBirth
 import { relations } from 'drizzle-orm'
+
+export const families = pgTable('families', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  name: text('name').notNull(),                  // "Keluarga Iqbal"
+  slug: text('slug').notNull().unique(),          // "x7k9m2p4" — random 8 char hex
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+})
+
+export const familyMembers = pgTable('family_members', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  familyId: uuid('family_id').notNull().references(() => families.id, { onDelete: 'cascade' }),
+  clerkUserId: text('clerk_user_id').notNull(),   // Clerk user ID
+  role: text('role').notNull().default('owner'),  // 'owner' | 'co-parent'
+  joinedAt: timestamp('joined_at', { withTimezone: true }).defaultNow().notNull(),
+})
 
 export const children = pgTable('children', {
   id: uuid('id').primaryKey().defaultRandom(),
+  familyId: uuid('family_id').notNull().references(() => families.id, { onDelete: 'cascade' }),
   name: text('name').notNull(),
-  age: integer('age').notNull(),
+  dateOfBirth: date('date_of_birth').notNull(), // YYYY-MM-DD — usia dihitung dinamis
   avatarUrl: text('avatar_url'),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
 })
@@ -83,7 +100,17 @@ export const hourglassSessions = pgTable('hourglass_sessions', {
 })
 
 // Relations
-export const childrenRelations = relations(children, ({ many }) => ({
+export const familiesRelations = relations(families, ({ many }) => ({
+  members: many(familyMembers),
+  children: many(children),
+}))
+
+export const familyMembersRelations = relations(familyMembers, ({ one }) => ({
+  family: one(families, { fields: [familyMembers.familyId], references: [families.id] }),
+}))
+
+export const childrenRelations = relations(children, ({ one, many }) => ({
+  family: one(families, { fields: [children.familyId], references: [families.id] }),
   habits: many(habits),
   habitLogs: many(habitLogs),
   mealJournals: many(mealJournals),

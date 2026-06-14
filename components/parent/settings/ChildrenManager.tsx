@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { calcAge } from '@/lib/date'
 
 interface Habit {
   id: string
@@ -17,7 +18,7 @@ interface Habit {
 interface Child {
   id: string
   name: string
-  age: number
+  dateOfBirth: string
   avatarUrl: string | null
 }
 
@@ -48,11 +49,11 @@ const SCHEDULE_LABELS: Record<string, string> = {
 
 function EditChildForm({ child, onSave, onCancel }: {
   child: Child
-  onSave: (name: string, age: number, avatar: string) => void
+  onSave: (name: string, dateOfBirth: string, avatar: string) => void
   onCancel: () => void
 }) {
   const [name, setName] = useState(child.name)
-  const [age, setAge] = useState(String(child.age))
+  const [dob, setDob] = useState(child.dateOfBirth)
   const [avatar, setAvatar] = useState(child.avatarUrl ?? '🐶')
 
   return (
@@ -80,20 +81,22 @@ function EditChildForm({ child, onSave, onCancel }: {
         placeholder="Nama anak"
         className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm mb-2 focus:outline-none focus:border-blue-400"
       />
-      <input
-        type="number"
-        value={age}
-        onChange={(e) => setAge(e.target.value)}
-        placeholder="Usia"
-        min={1}
-        max={18}
-        className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm mb-3 focus:outline-none focus:border-blue-400"
-      />
+      <div className="mb-3">
+        <p className="text-xs text-gray-500 mb-1">Tanggal lahir</p>
+        <input
+          type="date"
+          value={dob}
+          onChange={(e) => setDob(e.target.value)}
+          max={new Date().toISOString().slice(0, 10)}
+          className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-blue-400"
+        />
+        {dob && <p className="text-xs text-gray-400 mt-1">{calcAge(dob)} tahun</p>}
+      </div>
       <div className="flex gap-2">
         <button onClick={onCancel} className="flex-1 py-2.5 rounded-xl bg-gray-100 text-gray-500 text-sm font-semibold">Batal</button>
         <button
-          onClick={() => onSave(name, Number(age), avatar)}
-          disabled={!name.trim() || !age}
+          onClick={() => onSave(name, dob, avatar)}
+          disabled={!name.trim() || !dob}
           className="flex-1 py-2.5 rounded-xl bg-blue-500 text-white text-sm font-semibold disabled:opacity-40"
         >
           Simpan
@@ -251,11 +254,11 @@ export function ChildrenManager({ children, habitsByChild, onChanged }: Children
     onChanged()
   }
 
-  async function handleSaveChild(id: string, name: string, age: number, avatar: string) {
+  async function handleSaveChild(id: string, name: string, dateOfBirth: string, avatar: string) {
     await fetch(`/api/children/${id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, age, avatar_url: avatar }),
+      body: JSON.stringify({ name, date_of_birth: dateOfBirth, avatar_url: avatar }),
     })
     setEditingChildId(null)
     onChanged()
@@ -298,7 +301,7 @@ export function ChildrenManager({ children, habitsByChild, onChanged }: Children
                 <span className="text-3xl">{child.avatarUrl ?? '🐶'}</span>
                 <div>
                   <p className="font-bold text-gray-900">{child.name}</p>
-                  <p className="text-sm text-gray-400">{child.age} tahun · {activeHabits.length} habit aktif</p>
+                  <p className="text-sm text-gray-400">{calcAge(child.dateOfBirth)} tahun · {activeHabits.length} habit aktif</p>
                 </div>
               </div>
               <span className="text-gray-300 text-lg">{isExpanded ? '▲' : '▼'}</span>
@@ -311,7 +314,7 @@ export function ChildrenManager({ children, habitsByChild, onChanged }: Children
                 {editingChildId === child.id ? (
                   <EditChildForm
                     child={child}
-                    onSave={(name, age, avatar) => handleSaveChild(child.id, name, age, avatar)}
+                    onSave={(name, dob, avatar) => handleSaveChild(child.id, name, dob, avatar)}
                     onCancel={() => setEditingChildId(null)}
                   />
                 ) : (

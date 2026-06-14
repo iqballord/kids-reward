@@ -29,7 +29,7 @@ export function ChildSection({ data, onHabitComplete }: ChildSectionProps) {
       <div className={`rounded-2xl px-4 py-3 mb-4 flex items-center justify-between ${allDone ? 'bg-green-100' : 'bg-white border border-gray-100 shadow-sm'}`}>
         <div>
           <p className="font-bold text-lg text-gray-900">{child.name}</p>
-          <p className="text-sm text-gray-500">{child.age} tahun · {doneHabits}/{totalHabits} selesai</p>
+          <p className="text-sm text-gray-500">{doneHabits}/{totalHabits} selesai</p>
         </div>
         <div className="text-right">
           <p className="text-2xl font-bold text-amber-500">{totalTickets}</p>

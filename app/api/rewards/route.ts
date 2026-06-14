@@ -1,11 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { rewards, children, ticketTransactions } from '@/lib/db/schema'
-import { eq, sum } from 'drizzle-orm'
+import { eq, sum, inArray, or, isNull } from 'drizzle-orm'
+import { requireFamilyContext } from '@/lib/family'
 
 export async function GET() {
-  const allChildren = await db.select().from(children).orderBy(children.createdAt)
-  const allRewards = await db.select().from(rewards).where(eq(rewards.isActive, true)).orderBy(rewards.createdAt)
+  const { familyId } = await requireFamilyContext()
+
+  const allChildren = await db.select().from(children).where(eq(children.familyId, familyId)).orderBy(children.createdAt)
+  const childIds = allChildren.map(c => c.id)
+
+  const allRewards = childIds.length > 0
+    ? await db.select().from(rewards).where(
+        eq(rewards.isActive, true)
+      ).orderBy(rewards.createdAt)
+    : []
+
+  // Filter rewards milik keluarga ini (childId null = semua, atau childId dalam keluarga)
+  const familyRewards = allRewards.filter(r => !r.childId || childIds.includes(r.childId))
 
   const ticketBalances = await Promise.all(
     allChildren.map(async (child) => {
@@ -17,14 +29,11 @@ export async function GET() {
     })
   )
 
-  return NextResponse.json({
-    rewards: allRewards,
-    children: allChildren,
-    ticketBalances,
-  })
+  return NextResponse.json({ rewards: familyRewards, children: allChildren, ticketBalances })
 }
 
 export async function POST(request: NextRequest) {
+  const { familyId } = await requireFamilyContext()
   const body = await request.json()
   const { child_id, name, icon, ticket_cost } = body as {
     child_id: string | null
@@ -35,6 +44,14 @@ export async function POST(request: NextRequest) {
 
   if (!name || !ticket_cost || ticket_cost < 1) {
     return NextResponse.json({ error: 'name and ticket_cost required' }, { status: 400 })
+  }
+
+  // Validasi child_id milik keluarga ini
+  if (child_id) {
+    const [child] = await db.select({ id: children.id }).from(children).where(
+      eq(children.id, child_id)
+    )
+    if (!child) return NextResponse.json({ error: 'Child not found' }, { status: 404 })
   }
 
   const [reward] = await db

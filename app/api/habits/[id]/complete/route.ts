@@ -1,15 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
-import { habits, habitLogs, ticketTransactions } from '@/lib/db/schema'
+import { habits, habitLogs, ticketTransactions, children } from '@/lib/db/schema'
 import { eq, and, sum } from 'drizzle-orm'
-import { emitEvent } from '@/lib/sse'
+import { pusherServer, familyChannel } from '@/lib/pusher'
 import type { CompleteHabitResponse } from '@/lib/types'
 import { todayWIB } from '@/lib/date'
+import { requireFamilyContext } from '@/lib/family'
 
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const { familyId, familySlug } = await requireFamilyContext()
   const { id } = await params
   const body = await request.json()
   const { child_id } = body as { child_id: string }
@@ -18,9 +20,16 @@ export async function POST(
     return NextResponse.json({ error: 'child_id is required' }, { status: 400 })
   }
 
+  // Validasi child milik family yang login
+  const [child] = await db.select({ id: children.id }).from(children).where(
+    and(eq(children.id, child_id), eq(children.familyId, familyId))
+  )
+  if (!child) return NextResponse.json({ error: 'Child not found' }, { status: 404 })
+
   const today = todayWIB()
 
-  const [habit] = await db.select().from(habits).where(eq(habits.id, id))
+  // Validasi habit milik child tersebut
+  const [habit] = await db.select().from(habits).where(and(eq(habits.id, id), eq(habits.childId, child_id)))
   if (!habit) {
     return NextResponse.json({ error: 'Habit not found' }, { status: 404 })
   }
@@ -75,11 +84,12 @@ export async function POST(
     todayLogs.some((l) => l.habitId === h.id)
   )
 
-  emitEvent('habit_completed', {
+  await pusherServer.trigger(familyChannel(familyId), 'habit_completed', {
     childId: child_id,
     habitId: id,
     totalTickets,
     allHabitsDone,
+    familySlug,
   })
 
   const response: CompleteHabitResponse = {

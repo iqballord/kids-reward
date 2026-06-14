@@ -3,7 +3,7 @@ export type Schedule = 'morning' | 'afternoon' | 'evening'
 export interface Child {
   id: string
   name: string
-  age: number
+  dateOfBirth: string   // YYYY-MM-DD
   avatarUrl: string | null
   createdAt?: string | Date
 }

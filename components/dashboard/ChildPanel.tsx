@@ -1,5 +1,6 @@
 import { HabitRow } from './HabitRow'
 import { HourglassWidget } from './HourglassWidget'
+import { calcAge } from '@/lib/date'
 import type { TodayData } from '@/lib/types'
 import type { HourglassState } from '@/lib/hourglass'
 
@@ -26,7 +27,7 @@ export function ChildPanel({ data, hourglass }: ChildPanelProps) {
           <span className="text-6xl leading-none">{child.avatarUrl ?? '🐶'}</span>
           <div>
             <h2 className="text-4xl font-bold text-white">{child.name}</h2>
-            <p className="text-white/50 text-lg mt-0.5">{child.age} tahun</p>
+            <p className="text-white/50 text-lg mt-0.5">{calcAge(child.dateOfBirth)} tahun</p>
           </div>
         </div>
         <div className="flex items-center gap-4">

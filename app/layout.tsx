@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist } from "next/font/google";
+import { ClerkProvider } from "@clerk/nextjs";
 import "./globals.css";
 
 const geist = Geist({
@@ -18,8 +19,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="id" className={`${geist.variable} h-full antialiased`}>
-      <body className="min-h-full bg-gray-50 text-gray-900">{children}</body>
-    </html>
+    <ClerkProvider>
+      <html lang="id" className={`${geist.variable} h-full antialiased`}>
+        <body className="min-h-full bg-gray-50 text-gray-900">{children}</body>
+      </html>
+    </ClerkProvider>
   );
 }

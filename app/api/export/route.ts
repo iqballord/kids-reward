@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { mealJournals, habitLogs, habits, children } from '@/lib/db/schema'
 import { eq, and, gte, lte, desc } from 'drizzle-orm'
+import { requireFamilyContext } from '@/lib/family'
 
 const MEAL_TYPE: Record<string, string> = {
   breakfast: 'Sarapan',
@@ -68,17 +69,20 @@ function rowsToCsv(headers: string[], rows: string[][]): string {
 }
 
 export async function GET(request: NextRequest) {
+  const { familyId } = await requireFamilyContext()
   const { searchParams } = new URL(request.url)
   const childId = searchParams.get('child_id')
   const from = searchParams.get('from')
   const to = searchParams.get('to')
-  const type = searchParams.get('type') ?? 'meal' // 'meal' | 'habit'
+  const type = searchParams.get('type') ?? 'meal'
 
   if (!childId) {
     return NextResponse.json({ error: 'child_id is required' }, { status: 400 })
   }
 
-  const [child] = await db.select().from(children).where(eq(children.id, childId))
+  const [child] = await db.select().from(children).where(
+    and(eq(children.id, childId), eq(children.familyId, familyId))
+  )
   if (!child) return NextResponse.json({ error: 'Child not found' }, { status: 404 })
 
   let csv = ''

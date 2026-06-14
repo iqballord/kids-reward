@@ -1,25 +1,31 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { children } from '@/lib/db/schema'
-import { eq } from 'drizzle-orm'
+import { eq, and } from 'drizzle-orm'
+import { requireFamilyContext } from '@/lib/family'
 
 export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const { familyId } = await requireFamilyContext()
   const { id } = await params
   const body = await request.json()
-  const { name, age, avatar_url } = body as { name?: string; age?: number; avatar_url?: string }
+  const { name, date_of_birth, avatar_url } = body as {
+    name?: string
+    date_of_birth?: string
+    avatar_url?: string
+  }
 
-  const updates: Partial<{ name: string; age: number; avatarUrl: string }> = {}
+  const updates: Partial<{ name: string; dateOfBirth: string; avatarUrl: string }> = {}
   if (name !== undefined) updates.name = name.trim()
-  if (age !== undefined) updates.age = age
+  if (date_of_birth !== undefined) updates.dateOfBirth = date_of_birth
   if (avatar_url !== undefined) updates.avatarUrl = avatar_url
 
   const [updated] = await db
     .update(children)
     .set(updates)
-    .where(eq(children.id, id))
+    .where(and(eq(children.id, id), eq(children.familyId, familyId)))
     .returning()
 
   if (!updated) return NextResponse.json({ error: 'Child not found' }, { status: 404 })

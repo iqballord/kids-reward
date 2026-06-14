@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState, useCallback } from 'react'
+import { useClerk } from '@clerk/nextjs'
 import { RewardManager } from '@/components/parent/settings/RewardManager'
 import { ChildrenManager } from '@/components/parent/settings/ChildrenManager'
 import { ResetTodayButton } from '@/components/parent/settings/ResetTodayButton'
@@ -23,7 +24,7 @@ interface Habit {
 interface Child {
   id: string
   name: string
-  age: number
+  dateOfBirth: string
 }
 
 interface SettingsData {
@@ -44,6 +45,7 @@ export default function SettingsPage() {
   const [tab, setTab] = useState<Tab>('children')
   const [data, setData] = useState<SettingsData | null>(null)
   const [loading, setLoading] = useState(true)
+  const { signOut } = useClerk()
 
   const fetchData = useCallback(async () => {
     const [rewardsRes, habitsRes] = await Promise.all([
@@ -120,6 +122,16 @@ export default function SettingsPage() {
           onChanged={fetchData}
         />
       )}
+
+      {/* Logout */}
+      <div className="mt-8 pt-6 border-t border-gray-100">
+        <button
+          onClick={() => signOut({ redirectUrl: '/sign-in' })}
+          className="w-full py-3 rounded-2xl bg-gray-100 text-gray-500 text-sm font-semibold active:scale-95 transition-transform"
+        >
+          Keluar
+        </button>
+      </div>
     </div>
   )
 }
