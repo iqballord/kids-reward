@@ -45,15 +45,19 @@ export default function SettingsPage() {
   const [tab, setTab] = useState<Tab>('children')
   const [data, setData] = useState<SettingsData | null>(null)
   const [loading, setLoading] = useState(true)
+  const [familySlug, setFamilySlug] = useState<string | null>(null)
+  const [copied, setCopied] = useState(false)
   const { signOut } = useClerk()
 
   const fetchData = useCallback(async () => {
-    const [rewardsRes, habitsRes] = await Promise.all([
+    const [rewardsRes, habitsRes, familyRes] = await Promise.all([
       fetch('/api/rewards'),
       fetch('/api/habits/all'),
+      fetch('/api/family/me'),
     ])
     const rewardsData = await rewardsRes.json()
     const habitsData = await habitsRes.json()
+    const familyData = await familyRes.json()
 
     setData({
       children: rewardsData.children,
@@ -61,8 +65,20 @@ export default function SettingsPage() {
       rewards: rewardsData.rewards,
       ticketBalances: rewardsData.ticketBalances,
     })
+    setFamilySlug(familyData.familySlug ?? null)
     setLoading(false)
   }, [])
+
+  const dashboardUrl = familySlug
+    ? `${typeof window !== 'undefined' ? window.location.origin : ''}/dashboard/${familySlug}`
+    : null
+
+  const handleCopy = async () => {
+    if (!dashboardUrl) return
+    await navigator.clipboard.writeText(dashboardUrl)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
 
   useEffect(() => {
     fetchData()
@@ -86,6 +102,33 @@ export default function SettingsPage() {
     <div>
       <h2 className="text-xl font-bold text-gray-900 mb-4">⚙️ Pengaturan</h2>
       <ResetTodayButton onReset={fetchData} />
+
+      {/* Dashboard TV */}
+      {familySlug && (
+        <div className="mb-6 p-4 rounded-2xl bg-gray-950 border border-white/10">
+          <p className="text-white/50 text-xs font-semibold uppercase tracking-widest mb-3">📺 Dashboard TV</p>
+          <div className="flex items-center gap-2 mb-3">
+            <span className="text-white/30 text-xs">Kode:</span>
+            <span className="font-mono text-lg font-black text-white tracking-widest">{familySlug}</span>
+          </div>
+          <div className="flex gap-2">
+            <a
+              href={dashboardUrl!}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex-1 py-2.5 rounded-xl bg-white/10 text-white text-sm font-semibold text-center active:scale-95 transition-transform"
+            >
+              Buka Dashboard →
+            </a>
+            <button
+              onClick={handleCopy}
+              className="px-4 py-2.5 rounded-xl bg-white/10 text-white text-sm font-semibold active:scale-95 transition-transform"
+            >
+              {copied ? '✓ Tersalin' : 'Salin Link'}
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Tab switcher */}
       <div className="flex gap-2 mb-6 bg-gray-100 p-1 rounded-2xl">

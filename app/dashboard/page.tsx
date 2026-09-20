@@ -2,6 +2,7 @@
 
 import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 
 export default function DashboardEntryPage() {
   const [code, setCode] = useState('')
@@ -77,7 +78,7 @@ export default function DashboardEntryPage() {
 
         <p className="text-white/20 text-sm text-center mt-8">
           Belum punya kode?{' '}
-          <a href="/sign-up" className="text-white/40 underline">Daftar di sini</a>
+          <Link href="/sign-up" className="text-white/40 underline">Daftar di sini</Link>
         </p>
       </div>
     </div>

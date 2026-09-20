@@ -43,11 +43,11 @@ export function ChildPanel({ data, hourglass }: ChildPanelProps) {
 
       {/* Progress bar */}
       <div className="mb-5">
-        <div className="flex justify-between text-sm text-white/40 mb-1.5">
+        <div className="flex justify-between text-base text-white/40 mb-2">
           <span>{doneCount} dari {totalCount} selesai</span>
           <span>{progressPct}%</span>
         </div>
-        <div className="h-2.5 bg-white/10 rounded-full overflow-hidden">
+        <div className="h-4 bg-white/10 rounded-full overflow-hidden">
           <div
             className="h-full bg-green-400 rounded-full transition-all duration-700"
             style={{ width: `${progressPct}%` }}
@@ -60,10 +60,10 @@ export function ChildPanel({ data, hourglass }: ChildPanelProps) {
         {/* Habit yang dipilih tampil di dashboard (belum selesai) */}
         {pinnedHabits.length > 0 && (
           <div>
-            <p className="text-white/30 text-sm font-semibold uppercase tracking-widest mb-2 px-1">
+            <p className="text-white/30 text-base font-semibold uppercase tracking-widest mb-2 px-1">
               📌 Sedang berjalan
             </p>
-            <div className="flex flex-col gap-1.5">
+            <div className="flex flex-col gap-2">
               {pinnedHabits.map((habit) => (
                 <HabitRow key={habit.id} habit={habit} />
               ))}
@@ -74,10 +74,10 @@ export function ChildPanel({ data, hourglass }: ChildPanelProps) {
         {/* Habit yang sudah selesai */}
         {doneHabits.length > 0 && (
           <div>
-            <p className="text-white/30 text-sm font-semibold uppercase tracking-widest mb-2 px-1">
+            <p className="text-white/30 text-base font-semibold uppercase tracking-widest mb-2 px-1">
               ✅ Selesai
             </p>
-            <div className="flex flex-col gap-1.5">
+            <div className="flex flex-col gap-2">
               {doneHabits.map((habit) => (
                 <HabitRow key={habit.id} habit={habit} />
               ))}

@@ -77,9 +77,6 @@ export function CelebrationOverlay({ childName, onDone }: Props) {
         <p className="text-3xl text-green-400 font-bold mb-3">
           Semua habit selesai hari ini!
         </p>
-        <p className="text-xl text-white/40 mt-6">
-          Tap untuk melanjutkan
-        </p>
       </div>
     </div>
   )
